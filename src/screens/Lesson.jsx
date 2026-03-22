@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../store'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Volume2 } from 'lucide-react'
 
 const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-production.up.railway.app/api'
 
@@ -24,6 +24,20 @@ async function apiFetch(path) {
   return res.json()
 }
 
+// ── Korean TTS ──
+function speakKorean(text) {
+  try {
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'ko-KR'
+    utterance.rate = 0.85
+    utterance.pitch = 1.0
+    window.speechSynthesis.speak(utterance)
+  } catch (e) {
+    console.warn('TTS not supported:', e)
+  }
+}
+
 export default function Lesson() {
   const { lessonId } = useParams()
   const navigate = useNavigate()
@@ -39,6 +53,7 @@ export default function Lesson() {
   const [selected, setSelected] = useState(null)
   const [revealed, setRevealed] = useState(false)
   const [score, setScore] = useState(0)
+  const [speakingIdx, setSpeakingIdx] = useState(null)
   const scoreRef = useRef(0)
   const contentRef = useRef(null)
 
@@ -69,6 +84,19 @@ export default function Lesson() {
     handleScroll()
     return () => el.removeEventListener('scroll', handleScroll)
   }, [phase, loading, activeTab])
+
+  // ── Speak handler ──
+  const handleSpeak = (text, idx) => {
+    setSpeakingIdx(idx)
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'ko-KR'
+    utterance.rate = 0.85
+    utterance.pitch = 1.0
+    utterance.onend = () => setSpeakingIdx(null)
+    utterance.onerror = () => setSpeakingIdx(null)
+    window.speechSynthesis.speak(utterance)
+  }
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', flexDirection: 'column', gap: 16 }}>
@@ -156,7 +184,7 @@ export default function Lesson() {
         {[
           { key: 'intro',    label: '📖 Kirish' },
           { key: 'grammar',  label: '✍️ Grammatika' },
-          { key: 'vocab',    label: '📚 Lug\'at' },
+          { key: 'vocab',    label: '🔊 Lug\'at' },
           { key: 'examples', label: '💬 Misollar' },
           { key: 'notes',    label: '📝 Eslatma' },
         ].map(tab => (
@@ -237,7 +265,14 @@ export default function Lesson() {
                 </div>
                 {g.examples?.map((ex, ei) => (
                   <div key={ei} className="card-sm" style={{ marginBottom: 8, borderLeft: '3px solid var(--purple)', borderRadius: '0 10px 10px 0' }}>
-                    <div className="kr" style={{ fontSize: 17, fontWeight: 700, color: 'var(--accent2)', marginBottom: 2 }}>{ex.kr}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div className="kr" style={{ fontSize: 17, fontWeight: 700, color: 'var(--accent2)', marginBottom: 2 }}>{ex.kr}</div>
+                      <button
+                        onClick={() => handleSpeak(ex.kr, `g${gi}-${ei}`)}
+                        style={{ background: speakingIdx === `g${gi}-${ei}` ? 'var(--accent)' : 'var(--bg3)', border: 'none', borderRadius: 20, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s' }}>
+                        <Volume2 size={14} color={speakingIdx === `g${gi}-${ei}` ? 'white' : 'var(--accent)'} />
+                      </button>
+                    </div>
                     <div style={{ fontSize: 12, color: 'var(--text3)', fontStyle: 'italic', marginBottom: 2 }}>{ex.rom}</div>
                     <div style={{ fontSize: 13, color: 'var(--text2)' }}>{ex.uz}</div>
                   </div>
@@ -251,26 +286,110 @@ export default function Lesson() {
           </div>
         )}
 
-        {/* ── VOCAB ── */}
+        {/* ── VOCAB with AUDIO ── */}
         {activeTab === 'vocab' && (
           <div>
-            <div style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 12, textAlign: 'center' }}>
-              {content.vocabulary?.length || 0} ta so'z
+            {/* Header info */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ fontSize: 13, color: 'var(--text3)' }}>
+                {content.vocabulary?.length || 0} ta so'z
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>
+                <Volume2 size={14} color="var(--accent)" />
+                <span>🔊 bosib eshiting</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+            {/* Vocab cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {content.vocabulary?.map((v, i) => (
-                <div key={i} className="card-sm" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text3)', flexShrink: 0 }}>
-                    {i + 1}
+                <div key={i} style={{
+                  background: 'var(--card)',
+                  borderRadius: 14,
+                  padding: '14px 16px',
+                  boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
+                  border: speakingIdx === i ? '1.5px solid var(--accent)' : '1.5px solid transparent',
+                  transition: 'border 0.2s'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+
+                    {/* Number */}
+                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text3)', flexShrink: 0 }}>
+                      {i + 1}
+                    </div>
+
+                    {/* Korean + Romanization */}
+                    <div style={{ flex: 1 }}>
+                      <div className="kr" style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent2)', lineHeight: 1.2 }}>{v.korean}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 3, fontStyle: 'italic' }}>{v.romanization}</div>
+                    </div>
+
+                    {/* Uzbek translation */}
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text2)', textAlign: 'right', maxWidth: 110 }}>
+                      {v.uzbek}
+                    </div>
+
+                    {/* Audio button */}
+                    <button
+                      onClick={() => handleSpeak(v.korean, i)}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '50%',
+                        background: speakingIdx === i ? 'var(--accent)' : 'var(--bg3)',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        transition: 'all 0.2s',
+                        transform: speakingIdx === i ? 'scale(1.1)' : 'scale(1)'
+                      }}>
+                      <Volume2 size={18} color={speakingIdx === i ? 'white' : 'var(--accent)'} />
+                    </button>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div className="kr" style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent2)', lineHeight: 1.3 }}>{v.korean}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>{v.romanization}</div>
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text2)', textAlign: 'right', maxWidth: 120 }}>{v.uzbek}</div>
                 </div>
               ))}
             </div>
+
+            {/* Listen all button */}
+            <button
+              style={{
+                width: '100%',
+                marginTop: 20,
+                padding: '14px',
+                borderRadius: 12,
+                border: '1.5px solid var(--accent)',
+                background: 'transparent',
+                color: 'var(--accent)',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8
+              }}
+              onClick={() => {
+                if (!content.vocabulary?.length) return
+                let i = 0
+                const speakNext = () => {
+                  if (i >= content.vocabulary.length) { setSpeakingIdx(null); return }
+                  const v = content.vocabulary[i]
+                  setSpeakingIdx(i)
+                  window.speechSynthesis.cancel()
+                  const utt = new SpeechSynthesisUtterance(v.korean)
+                  utt.lang = 'ko-KR'
+                  utt.rate = 0.8
+                  utt.onend = () => { i++; setTimeout(speakNext, 600) }
+                  window.speechSynthesis.speak(utt)
+                }
+                speakNext()
+              }}>
+              <Volume2 size={16} color="var(--accent)" />
+              Hammasini eshitish
+            </button>
           </div>
         )}
 
@@ -279,7 +398,14 @@ export default function Lesson() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {content.examples?.map((ex, i) => (
               <div key={i} className="card" style={{ borderLeft: '4px solid var(--accent)' }}>
-                <div className="kr" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 6, lineHeight: 1.5 }}>{ex.korean}</div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                  <div className="kr" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 6, lineHeight: 1.5, flex: 1 }}>{ex.korean}</div>
+                  <button
+                    onClick={() => handleSpeak(ex.korean, `ex-${i}`)}
+                    style={{ background: speakingIdx === `ex-${i}` ? 'var(--accent)' : 'var(--bg3)', border: 'none', borderRadius: 20, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                    <Volume2 size={15} color={speakingIdx === `ex-${i}` ? 'white' : 'var(--accent)'} />
+                  </button>
+                </div>
                 <div style={{ fontSize: 12, color: 'var(--text3)', fontStyle: 'italic', marginBottom: 6 }}>{ex.romanization}</div>
                 <div style={{ height: 1, background: 'var(--border)', marginBottom: 8 }} />
                 <div style={{ fontSize: 14, color: 'var(--text2)', fontWeight: 500 }}>🇺🇿 {ex.uzbek}</div>
@@ -313,7 +439,7 @@ export default function Lesson() {
       {/* Bottom button */}
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '12px 16px 20px', background: 'var(--bg)', borderTop: '0.5px solid var(--border)' }}>
         {quiz.length > 0 ? (
-          <button className="btn btn-primary" onClick={() => setPhase('quiz')}>
+          <button className="btn btn-primary" onClick={() => { window.speechSynthesis.cancel(); setPhase('quiz') }}>
             📝 Testni boshlash ({quiz.length} ta savol)
           </button>
         ) : (
