@@ -7,7 +7,8 @@ import Home from './screens/Home'
 import LearningPath from './screens/LearningPath'
 import Lesson from './screens/Lesson'
 import TestScreen from './screens/TestScreen'
-import { Leaderboard, Profile, Review, Premium, Referral } from './screens/OtherScreens'
+import { Leaderboard, Profile, Review, Referral } from './screens/OtherScreens'
+import Premium from './screens/Premium'
 import BottomNav from './components/BottomNav'
 
 const SHOW_NAV = ['/', '/path', '/leaderboard', '/profile']
