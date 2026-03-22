@@ -62,23 +62,21 @@ export default function ChannelGate() {
       </div>
 
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <button className="btn btn-primary" onClick={handleJoin}>
-          <span>📢</span> Kanalga o'tish
-        </button>
-        <button className="btn btn-secondary" onClick={handleCheck} disabled={checking}>
-          {checking ? (
-            <span>Tekshirilmoqda...</span>
-          ) : (
-            <span>✅ Obunani tekshirish</span>
-          )}
-        </button>
-      </div>
+  <button className="btn btn-primary" onClick={() => setSubscribed()} style={{background: 'linear-gradient(135deg, #6c63ff, #9c4dff)'}}>
+    <span>🚀</span> Darsni boshlash
+  </button>
+  <button className="btn btn-primary" onClick={handleJoin}>
+    <span>📢</span> Kanalga o'tish
+  </button>
+  <button className="btn btn-secondary" onClick={handleCheck} disabled={checking}>
+    {checking ? (
+      <span>Tekshirilmoqda...</span>
+    ) : (
+      <span>✅ Obunani tekshirish</span>
+    )}
+  </button>
+</div>
 
-      {failed && (
-        <p style={{ color: 'var(--red)', fontSize: 13, textAlign: 'center', marginTop: 14 }}>
-          Obuna topilmadi. Iltimos, avval kanalga obuna bo'ling.
-        </p>
-      )}
 
       <p style={{ color: 'var(--text3)', fontSize: 12, textAlign: 'center', marginTop: 24, lineHeight: 1.6 }}>
         Bu talab kanalimiz orqali yangiliklar va darslardan xabardor bo'lishingiz uchun
