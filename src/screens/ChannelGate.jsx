@@ -12,24 +12,10 @@ export default function ChannelGate() {
 
   const handleCheck = async () => {
     setChecking(true)
-    setFailed(false)
-    try {
-      const { verifySubscription } = await import('../api.js')
-      const result = await verifySubscription()
-      if (result.subscribed) {
-        setSubscribed()
-      } else {
-        setFailed(true)
-      }
-    } catch {
-      if (import.meta.env.DEV) {
-        setSubscribed()
-      } else {
-        setFailed(true)
-      }
-    } finally {
+    setTimeout(() => {
+      setSubscribed()
       setChecking(false)
-    }
+    }, 1000)
   }
 
   return (
