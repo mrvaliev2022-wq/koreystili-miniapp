@@ -27,7 +27,8 @@ export async function registerUser(userData) {
 }
 
 export async function verifySubscription() {
-  return apiFetch('/verify-subscription', { method: 'POST', body: {} })
+  const userId = getTgUserId()
+  return apiFetch('/verify-subscription', { method: 'POST', body: { user_id: userId } })
 }
 
 // ── Progress ───────────────────────────────────────────────────
