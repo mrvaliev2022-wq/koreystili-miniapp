@@ -14,7 +14,6 @@ export default function ChannelGate() {
     setChecking(true)
     setFailed(false)
     try {
-      // Try real backend first
       const { verifySubscription } = await import('../api.js')
       const result = await verifySubscription()
       if (result.subscribed) {
@@ -23,7 +22,6 @@ export default function ChannelGate() {
         setFailed(true)
       }
     } catch {
-      // Backend unreachable — allow in dev/demo mode
       if (import.meta.env.DEV) {
         setSubscribed()
       } else {
