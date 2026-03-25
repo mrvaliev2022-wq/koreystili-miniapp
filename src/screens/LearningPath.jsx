@@ -16,7 +16,7 @@ export default function LearningPath() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const levelFilter = params.get('level') ? parseInt(params.get('level')) : null
-  const { activeTrack, topikProgress, epsProgress } = useStore()
+  const { activeTrack, topikProgress, epsProgress, activatePremium } = useStore()
   const [isPremium, setIsPremium] = useState(false)
   const [dailyInfo, setDailyInfo] = useState({ lessons_today: 0, daily_limit: 6, can_study: true })
   const [loading, setLoading] = useState(true)
@@ -27,12 +27,17 @@ export default function LearningPath() {
     fetch(`${BASE}/payment/daily-check?user_id=${userId}`)
       .then(r => r.json())
       .then(data => {
-        setIsPremium(data.is_premium || false)
+        const premium = data.is_premium || false
+        setIsPremium(premium)
         setDailyInfo({
           lessons_today: data.lessons_today || 0,
           daily_limit: data.daily_limit || 6,
           can_study: data.can_study !== false
         })
+        // ✅ Premium bo'lsa TOPIK 2+ darslarini store da unlock qilamiz
+        if (premium) {
+          activatePremium(-1)
+        }
         setLoading(false)
       })
       .catch(() => setLoading(false))
