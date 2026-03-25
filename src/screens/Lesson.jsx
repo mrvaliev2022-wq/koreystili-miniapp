@@ -84,6 +84,225 @@ function AudioBtn({ isPlaying, onPress, size = 38 }) {
   )
 }
 
+// ════════════════════════════════════════════════════════
+// 🃏 MATCH PAIRS GAME
+// ════════════════════════════════════════════════════════
+function MatchPairsGame({ pairs }) {
+  const [cards, setCards] = useState([])
+  const [selected, setSelected] = useState([])
+  const [matched, setMatched] = useState([])
+  const [mistakes, setMistakes] = useState(0)
+  const [finished, setFinished] = useState(false)
+  const [shaking, setShaking] = useState([])
+
+  // Init: shuffle korean + uzbek cards
+  useEffect(() => {
+    if (!pairs?.length) return
+    const korCards = pairs.map((p, i) => ({ id: `k-${i}`, text: p.korean, pairId: i, type: 'korean' }))
+    const uzCards  = pairs.map((p, i) => ({ id: `u-${i}`, text: p.uzbek,  pairId: i, type: 'uzbek'  }))
+    const all = [...korCards, ...uzCards].sort(() => Math.random() - 0.5)
+    setCards(all)
+    setSelected([])
+    setMatched([])
+    setMistakes(0)
+    setFinished(false)
+  }, [pairs])
+
+  const handleSelect = (card) => {
+    if (matched.includes(card.id)) return
+    if (selected.find(c => c.id === card.id)) return
+    if (selected.length === 2) return
+
+    const newSel = [...selected, card]
+    setSelected(newSel)
+
+    if (newSel.length === 2) {
+      const [a, b] = newSel
+      if (a.pairId === b.pairId && a.type !== b.type) {
+        // ✅ Match!
+        setTimeout(() => {
+          setMatched(m => [...m, a.id, b.id])
+          setSelected([])
+          if (matched.length + 2 === cards.length) setFinished(true)
+        }, 400)
+      } else {
+        // ❌ No match — shake and reset
+        setMistakes(m => m + 1)
+        setShaking([a.id, b.id])
+        setTimeout(() => {
+          setSelected([])
+          setShaking([])
+        }, 700)
+      }
+    }
+  }
+
+  const restart = () => {
+    const shuffled = [...cards].sort(() => Math.random() - 0.5)
+    setCards(shuffled)
+    setSelected([])
+    setMatched([])
+    setMistakes(0)
+    setFinished(false)
+    setShaking([])
+  }
+
+  const isSelected = (id) => selected.find(c => c.id === id)
+  const isMatched  = (id) => matched.includes(id)
+  const isShaking  = (id) => shaking.includes(id)
+
+  const totalPairs = pairs.length
+  const matchedPairs = matched.length / 2
+  const progress = totalPairs > 0 ? (matchedPairs / totalPairs) * 100 : 0
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 16 }}>
+        <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--accent2)', marginBottom: 6 }}>
+          🃏 Juftlikni toping!
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 10 }}>
+          Koreys so'zini o'zbek ma'nosi bilan toping
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ height: 8, background: 'var(--bg3)', borderRadius: 4, margin: '0 8px 8px', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            background: 'linear-gradient(90deg, var(--accent), var(--accent2))',
+            width: `${progress}%`,
+            borderRadius: 4,
+            transition: 'width 0.4s'
+          }} />
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 20, fontSize: 13 }}>
+          <span style={{ color: '#28a745', fontWeight: 700 }}>✅ {matchedPairs}/{totalPairs}</span>
+          <span style={{ color: mistakes > 3 ? '#dc3545' : 'var(--text3)', fontWeight: 700 }}>
+            ❌ {mistakes} xato
+          </span>
+        </div>
+      </div>
+
+      {/* Finished state */}
+      {finished ? (
+        <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+          <div style={{ fontSize: 64, marginBottom: 12 }}>
+            {mistakes === 0 ? '🏆' : mistakes <= 2 ? '🌟' : '🎉'}
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--accent2)', marginBottom: 8 }}>
+            {mistakes === 0 ? 'MUKAMMAL! Hech xato yo\'q!' :
+             mistakes <= 2 ? 'Juda yaxshi!' : 'Barakalla!'}
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--text2)', marginBottom: 20 }}>
+            {totalPairs} ta juftlik | {mistakes} ta xato
+          </div>
+          {/* Stars rating */}
+          <div style={{ fontSize: 32, marginBottom: 20 }}>
+            {mistakes === 0 ? '⭐⭐⭐' : mistakes <= 2 ? '⭐⭐' : '⭐'}
+          </div>
+          <button
+            onClick={restart}
+            style={{
+              padding: '12px 28px', borderRadius: 14,
+              background: 'linear-gradient(135deg, var(--accent), var(--accent2))',
+              border: 'none', color: 'white', fontSize: 15, fontWeight: 700,
+              cursor: 'pointer'
+            }}>
+            🔄 Qayta o'ynash
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {cards.map(card => {
+            const sel  = isSelected(card.id)
+            const mat  = isMatched(card.id)
+            const shak = isShaking(card.id)
+            const isKr = card.type === 'korean'
+
+            let bg = 'var(--card)'
+            let border = 'var(--border)'
+            let color = 'var(--text)'
+            let shadow = '0 2px 8px rgba(0,0,0,0.06)'
+
+            if (mat) {
+              bg = 'linear-gradient(135deg, #d4edda, #c3e6cb)'
+              border = '#28a745'
+              color = '#155724'
+            } else if (shak) {
+              bg = '#f8d7da'
+              border = '#dc3545'
+              color = '#721c24'
+            } else if (sel) {
+              bg = 'linear-gradient(135deg, var(--bg3), #fce4ec)'
+              border = 'var(--accent)'
+              color = 'var(--accent2)'
+              shadow = '0 4px 14px rgba(244,114,182,0.3)'
+            }
+
+            return (
+              <div
+                key={card.id}
+                onClick={() => handleSelect(card)}
+                style={{
+                  background: bg,
+                  border: `2px solid ${border}`,
+                  borderRadius: 14,
+                  padding: '14px 10px',
+                  textAlign: 'center',
+                  cursor: mat ? 'default' : 'pointer',
+                  boxShadow: shadow,
+                  transition: 'all 0.2s',
+                  minHeight: 70,
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: 4,
+                  animation: shak ? 'shake 0.5s' : 'none',
+                  opacity: mat ? 0.75 : 1,
+                  transform: sel ? 'scale(1.04)' : shak ? 'scale(0.97)' : 'scale(1)'
+                }}>
+                {/* Type badge */}
+                <div style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: mat ? '#28a745' : sel ? 'var(--accent)' : 'var(--text3)',
+                  letterSpacing: 0.5,
+                  marginBottom: 2
+                }}>
+                  {mat ? '✓ Topildi' : isKr ? '🇰🇷 KR' : '🇺🇿 UZ'}
+                </div>
+                {/* Card text */}
+                <div style={{
+                  fontSize: isKr ? 16 : 13,
+                  fontWeight: isKr ? 700 : 600,
+                  color,
+                  lineHeight: 1.3,
+                  fontFamily: isKr ? 'inherit' : 'inherit'
+                }} className={isKr ? 'kr' : ''}>
+                  {card.text}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Shake animation */}
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-6px); }
+          40% { transform: translateX(6px); }
+          60% { transform: translateX(-4px); }
+          80% { transform: translateX(4px); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 export default function Lesson() {
   const { lessonId } = useParams()
   const navigate = useNavigate()
@@ -153,12 +372,14 @@ export default function Lesson() {
   const hasDialogues = content.dialogues?.length > 0
 
   // ── Tabs config ────────────────────────────────────────────────────
+  const hasMatchPairs = content.match_pairs?.length > 0
   const tabs = [
     { key: 'intro',    label: '📖 Kirish' },
     { key: 'grammar',  label: '✍️ Grammatika' },
     { key: 'vocab',    label: '🔊 Lug\'at' },
     ...(hasDialogues ? [{ key: 'dialogues', label: '💬 Dialog' }] : []),
     { key: 'examples', label: '🌟 Misollar' },
+    ...(hasMatchPairs ? [{ key: 'match', label: '🃏 O\'yin' }] : []),
     { key: 'notes',    label: '📝 Eslatma' },
   ]
 
@@ -512,6 +733,11 @@ export default function Lesson() {
               </div>
             ))}
           </div>
+        )}
+
+        {/* ── MATCH PAIRS TAB ── */}
+        {activeTab === 'match' && (
+          <MatchPairsGame pairs={content.match_pairs || []} />
         )}
 
         {/* ── NOTES TAB ── */}
