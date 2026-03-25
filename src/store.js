@@ -298,3 +298,55 @@ export const getLessonStatus = (state, lessonId) => {
   }
   return state.epsProgress.lessonProgress[lessonId] || 'locked'
 }
+
+// ── TOPIK_LEVELS, EPS_LESSONS, EPS_FINAL_TEST ─────────────────────
+// Bu ma'lumotlar Home.jsx, LearningPath.jsx, TestScreen.jsx da ishlatiladi
+
+export const TOPIK_LEVELS = Array.from({ length: 6 }, (_, li) => ({
+  id: li + 1,
+  title: `${li + 1}-daraja`,
+  description: ['Boshlang\'ich', 'Asosiy', 'O\'rta', 'Yuqori o\'rta', 'Ilg\'or', 'Ekspert'][li],
+  lessons: Array.from({ length: 10 }, (_, i) => ({
+    id: `topik-${li + 1}-${i + 1}`,
+    levelId: li + 1,
+    number: i + 1,
+    title: `${li + 1}-daraja, ${i + 1}-dars`,
+    xp: 10,
+  })),
+  test: {
+    id: `topik-test-${li + 1}`,
+    title: `${li + 1}-daraja yakuniy testi`,
+    passMark: 60,
+    questions: Array.from({ length: 10 }, (_, i) => ({
+      question: `${li + 1}-daraja test savoli ${i + 1}`,
+      options: ['A variant', 'B variant', 'C variant', 'D variant'],
+      correct: i % 4,
+    })),
+  },
+}))
+
+export const EPS_LESSONS = Array.from({ length: 10 }, (_, i) => {
+  const epsTitles = [
+    'Ish joyida salomlashish', 'Ish buyruqlari va ko\'rsatmalar',
+    'Xavfsizlik qoidalari', 'Ish vaqti va navbatchilik',
+    'Maosh va to\'lovlar', 'Kasallik va ta\'til', 'Ish asboblari nomlari',
+    'Zavod va fabrika muhiti', 'Hamkasb bilan muloqot', 'Ish shartnomasi',
+  ]
+  return {
+    id: `eps-${i + 1}`,
+    number: i + 1,
+    title: epsTitles[i],
+    xp: 10,
+  }
+})
+
+export const EPS_FINAL_TEST = {
+  id: 'eps-final',
+  title: 'EPS-TOPIK yakuniy testi',
+  passMark: 60,
+  questions: Array.from({ length: 10 }, (_, i) => ({
+    question: `EPS test savoli ${i + 1}`,
+    options: ['A variant', 'B variant', 'C variant', 'D variant'],
+    correct: i % 4,
+  })),
+}
