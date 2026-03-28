@@ -5,10 +5,9 @@ import { ChevronLeft, Volume2 } from 'lucide-react'
 
 const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-production.up.railway.app/api'
 
+// ── Helpers ──────────────────────────────────────────────────────────
 function getTgUserId() {
-  try {
-    return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null
-  } catch { return null }
+  try { return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null } catch { return null }
 }
 
 async function apiFetch(path) {
@@ -24,7 +23,7 @@ async function apiFetch(path) {
   return res.json()
 }
 
-// ── Korean TTS ──────────────────────────────────────────────────────
+// ── Korean TTS ───────────────────────────────────────────────────────
 function useSpeaker() {
   const [speakingId, setSpeakingId] = useState(null)
 
@@ -57,12 +56,11 @@ function useSpeaker() {
   }
 
   const stop = () => { window.speechSynthesis.cancel(); setSpeakingId(null) }
-
   return { speakingId, speak, speakAll, stop }
 }
 
-// ── Audio button ────────────────────────────────────────────────────
-function AudioBtn({ isPlaying, onPress, size = 38 }) {
+// ── Audio Button (Light Mode) ────────────────────────────────────────
+function AudioBtn({ isPlaying, onPress, size = 36 }) {
   return (
     <button
       onClick={onPress}
@@ -70,23 +68,21 @@ function AudioBtn({ isPlaying, onPress, size = 38 }) {
         width: size, height: size,
         borderRadius: '50%',
         background: isPlaying
-          ? 'linear-gradient(135deg, var(--accent), var(--accent2))'
-          : 'var(--bg3)',
-        border: 'none',
+          ? 'linear-gradient(135deg, #7c3aed, #a855f7)'
+          : '#ede9fe',
+        border: isPlaying ? 'none' : '0.5px solid rgba(124,58,237,0.25)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'pointer', flexShrink: 0,
         transition: 'all 0.2s',
-        transform: isPlaying ? 'scale(1.12)' : 'scale(1)',
-        boxShadow: isPlaying ? '0 4px 12px rgba(244,114,182,0.4)' : 'none'
+        transform: isPlaying ? 'scale(1.1)' : 'scale(1)',
+        boxShadow: isPlaying ? '0 4px 12px rgba(124,58,237,0.35)' : 'none'
       }}>
-      <Volume2 size={size * 0.42} color={isPlaying ? 'white' : 'var(--accent)'} />
+      <Volume2 size={size * 0.38} color={isPlaying ? 'white' : '#7c3aed'} />
     </button>
   )
 }
 
-// ════════════════════════════════════════════════════════
-// 🃏 MATCH PAIRS GAME
-// ════════════════════════════════════════════════════════
+// ── Match Pairs Game (Light Mode) ────────────────────────────────────
 function MatchPairsGame({ pairs }) {
   const [cards, setCards] = useState([])
   const [selected, setSelected] = useState([])
@@ -95,63 +91,47 @@ function MatchPairsGame({ pairs }) {
   const [finished, setFinished] = useState(false)
   const [shaking, setShaking] = useState([])
 
-  // Init: shuffle korean + uzbek cards
   useEffect(() => {
     if (!pairs?.length) return
     const korCards = pairs.map((p, i) => ({ id: `k-${i}`, text: p.korean, pairId: i, type: 'korean' }))
     const uzCards  = pairs.map((p, i) => ({ id: `u-${i}`, text: p.uzbek,  pairId: i, type: 'uzbek'  }))
     const all = [...korCards, ...uzCards].sort(() => Math.random() - 0.5)
-    setCards(all)
-    setSelected([])
-    setMatched([])
-    setMistakes(0)
-    setFinished(false)
+    setCards(all); setSelected([]); setMatched([]); setMistakes(0)
+    setFinished(false); setShaking([])
   }, [pairs])
 
   const handleSelect = (card) => {
     if (matched.includes(card.id)) return
     if (selected.find(c => c.id === card.id)) return
     if (selected.length === 2) return
-
     const newSel = [...selected, card]
     setSelected(newSel)
-
     if (newSel.length === 2) {
       const [a, b] = newSel
       if (a.pairId === b.pairId && a.type !== b.type) {
-        // ✅ Match!
         setTimeout(() => {
           setMatched(m => [...m, a.id, b.id])
           setSelected([])
           if (matched.length + 2 === cards.length) setFinished(true)
         }, 400)
       } else {
-        // ❌ No match — shake and reset
         setMistakes(m => m + 1)
         setShaking([a.id, b.id])
-        setTimeout(() => {
-          setSelected([])
-          setShaking([])
-        }, 700)
+        setTimeout(() => { setSelected([]); setShaking([]) }, 700)
       }
     }
   }
 
   const restart = () => {
     const shuffled = [...cards].sort(() => Math.random() - 0.5)
-    setCards(shuffled)
-    setSelected([])
-    setMatched([])
-    setMistakes(0)
-    setFinished(false)
-    setShaking([])
+    setCards(shuffled); setSelected([]); setMatched([])
+    setMistakes(0); setFinished(false); setShaking([])
   }
 
   const isSelected = (id) => selected.find(c => c.id === id)
   const isMatched  = (id) => matched.includes(id)
   const isShaking  = (id) => shaking.includes(id)
-
-  const totalPairs = pairs.length
+  const totalPairs  = pairs.length
   const matchedPairs = matched.length / 2
   const progress = totalPairs > 0 ? (matchedPairs / totalPairs) * 100 : 0
 
@@ -159,127 +139,82 @@ function MatchPairsGame({ pairs }) {
     <div>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--accent2)', marginBottom: 6 }}>
+        <div style={{ fontSize: 17, fontWeight: 900, color: '#1e1b4b', marginBottom: 4 }}>
           🃏 Juftlikni toping!
         </div>
-        <div style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 10 }}>
           Koreys so'zini o'zbek ma'nosi bilan toping
         </div>
-
         {/* Progress bar */}
-        <div style={{ height: 8, background: 'var(--bg3)', borderRadius: 4, margin: '0 8px 8px', overflow: 'hidden' }}>
+        <div style={{ height: 6, background: '#ede9fe', borderRadius: 3, margin: '0 8px 8px', overflow: 'hidden' }}>
           <div style={{
             height: '100%',
-            background: 'linear-gradient(90deg, var(--accent), var(--accent2))',
+            background: 'linear-gradient(90deg, #7c3aed, #a855f7)',
             width: `${progress}%`,
-            borderRadius: 4,
-            transition: 'width 0.4s'
+            borderRadius: 3, transition: 'width 0.4s'
           }} />
         </div>
-
-        {/* Stats */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 20, fontSize: 13 }}>
-          <span style={{ color: '#28a745', fontWeight: 700 }}>✅ {matchedPairs}/{totalPairs}</span>
-          <span style={{ color: mistakes > 3 ? '#dc3545' : 'var(--text3)', fontWeight: 700 }}>
-            ❌ {mistakes} xato
-          </span>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 20, fontSize: 12 }}>
+          <span style={{ color: '#15803d', fontWeight: 700 }}>✅ {matchedPairs}/{totalPairs}</span>
+          <span style={{ color: mistakes > 3 ? '#dc2626' : '#9ca3af', fontWeight: 700 }}>❌ {mistakes} xato</span>
         </div>
       </div>
 
-      {/* Finished state */}
+      {/* Finished */}
       {finished ? (
-        <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-          <div style={{ fontSize: 64, marginBottom: 12 }}>
+        <div style={{ textAlign: 'center', padding: '20px 16px' }}>
+          <div style={{ fontSize: 60, marginBottom: 10 }}>
             {mistakes === 0 ? '🏆' : mistakes <= 2 ? '🌟' : '🎉'}
           </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--accent2)', marginBottom: 8 }}>
-            {mistakes === 0 ? 'MUKAMMAL! Hech xato yo\'q!' :
-             mistakes <= 2 ? 'Juda yaxshi!' : 'Barakalla!'}
+          <div style={{ fontSize: 20, fontWeight: 900, color: '#1e1b4b', marginBottom: 6 }}>
+            {mistakes === 0 ? 'Mukammal! Hech xato yo\'q!' : mistakes <= 2 ? 'Juda yaxshi!' : 'Barakalla!'}
           </div>
-          <div style={{ fontSize: 14, color: 'var(--text2)', marginBottom: 20 }}>
+          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
             {totalPairs} ta juftlik | {mistakes} ta xato
           </div>
-          {/* Stars rating */}
-          <div style={{ fontSize: 32, marginBottom: 20 }}>
+          <div style={{ fontSize: 28, marginBottom: 18 }}>
             {mistakes === 0 ? '⭐⭐⭐' : mistakes <= 2 ? '⭐⭐' : '⭐'}
           </div>
-          <button
-            onClick={restart}
-            style={{
-              padding: '12px 28px', borderRadius: 14,
-              background: 'linear-gradient(135deg, var(--accent), var(--accent2))',
-              border: 'none', color: 'white', fontSize: 15, fontWeight: 700,
-              cursor: 'pointer'
-            }}>
+          <button onClick={restart} style={{
+            padding: '11px 26px', borderRadius: 14,
+            background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+            border: 'none', color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+          }}>
             🔄 Qayta o'ynash
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
           {cards.map(card => {
             const sel  = isSelected(card.id)
             const mat  = isMatched(card.id)
             const shak = isShaking(card.id)
             const isKr = card.type === 'korean'
-
-            let bg = 'var(--card)'
-            let border = 'var(--border)'
-            let color = 'var(--text)'
-            let shadow = '0 2px 8px rgba(0,0,0,0.06)'
-
-            if (mat) {
-              bg = 'linear-gradient(135deg, #d4edda, #c3e6cb)'
-              border = '#28a745'
-              color = '#155724'
-            } else if (shak) {
-              bg = '#f8d7da'
-              border = '#dc3545'
-              color = '#721c24'
-            } else if (sel) {
-              bg = 'linear-gradient(135deg, var(--bg3), #fce4ec)'
-              border = 'var(--accent)'
-              color = 'var(--accent2)'
-              shadow = '0 4px 14px rgba(244,114,182,0.3)'
-            }
-
+            let bg     = isKr ? '#ede9fe' : '#f0fdf4'
+            let border = isKr ? 'rgba(124,58,237,0.2)' : 'rgba(21,128,61,0.2)'
+            let color  = isKr ? '#1e1b4b' : '#15803d'
+            if (mat)  { bg = '#dcfce7'; border = '#16a34a'; color = '#15803d' }
+            if (shak) { bg = '#fee2e2'; border = '#dc2626'; color = '#991b1b' }
+            if (sel && !mat) { bg = '#ddd6fe'; border = '#7c3aed'; color = '#1e1b4b' }
             return (
               <div
                 key={card.id}
                 onClick={() => handleSelect(card)}
                 style={{
-                  background: bg,
-                  border: `2px solid ${border}`,
-                  borderRadius: 14,
-                  padding: '14px 10px',
-                  textAlign: 'center',
-                  cursor: mat ? 'default' : 'pointer',
-                  boxShadow: shadow,
-                  transition: 'all 0.2s',
-                  minHeight: 70,
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: 4,
-                  animation: shak ? 'shake 0.5s' : 'none',
-                  opacity: mat ? 0.75 : 1,
-                  transform: sel ? 'scale(1.04)' : shak ? 'scale(0.97)' : 'scale(1)'
+                  background: bg, border: `1.5px solid ${border}`,
+                  borderRadius: 14, padding: '13px 10px',
+                  textAlign: 'center', cursor: mat ? 'default' : 'pointer',
+                  transition: 'all 0.2s', minHeight: 68,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: 3, opacity: mat ? 0.7 : 1,
+                  transform: sel ? 'scale(1.04)' : shak ? 'scale(0.97)' : 'scale(1)',
+                  animation: shak ? 'shake 0.5s' : 'none'
                 }}>
-                {/* Type badge */}
-                <div style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: mat ? '#28a745' : sel ? 'var(--accent)' : 'var(--text3)',
-                  letterSpacing: 0.5,
-                  marginBottom: 2
-                }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: mat ? '#15803d' : sel ? '#7c3aed' : '#9ca3af', letterSpacing: 0.5 }}>
                   {mat ? '✓ Topildi' : isKr ? '🇰🇷 KR' : '🇺🇿 UZ'}
                 </div>
-                {/* Card text */}
                 <div style={{
-                  fontSize: isKr ? 16 : 13,
-                  fontWeight: isKr ? 700 : 600,
-                  color,
-                  lineHeight: 1.3,
-                  fontFamily: isKr ? 'inherit' : 'inherit'
+                  fontSize: isKr ? 15 : 12, fontWeight: 800, color, lineHeight: 1.3
                 }} className={isKr ? 'kr' : ''}>
                   {card.text}
                 </div>
@@ -288,21 +223,22 @@ function MatchPairsGame({ pairs }) {
           })}
         </div>
       )}
-
-      {/* Shake animation */}
       <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
-          20% { transform: translateX(-6px); }
-          40% { transform: translateX(6px); }
-          60% { transform: translateX(-4px); }
-          80% { transform: translateX(4px); }
+          20% { transform: translateX(-5px); }
+          40% { transform: translateX(5px); }
+          60% { transform: translateX(-3px); }
+          80% { transform: translateX(3px); }
         }
       `}</style>
     </div>
   )
 }
 
+// ════════════════════════════════════════════════════════════════════
+// MAIN LESSON COMPONENT
+// ════════════════════════════════════════════════════════════════════
 export default function Lesson() {
   const { lessonId } = useParams()
   const navigate = useNavigate()
@@ -313,17 +249,16 @@ export default function Lesson() {
   const [loading, setLoading] = useState(true)
   const [phase, setPhase] = useState('content')
   const [activeTab, setActiveTab] = useState('intro')
-  const [scrolled, setScrolled] = useState(false)
+  const [doneTabs, setDoneTabs] = useState(new Set())
   const [currentQ, setCurrentQ] = useState(0)
   const [selected, setSelected] = useState(null)
   const [revealed, setRevealed] = useState(false)
   const [score, setScore] = useState(0)
-  const [openDialog, setOpenDialog] = useState(null)
   const scoreRef = useRef(0)
   const contentRef = useRef(null)
   const { speakingId, speak, speakAll, stop } = useSpeaker()
 
-  // ── Load lesson + quiz ─────────────────────────────────────────────
+  // Load
   useEffect(() => {
     Promise.all([
       apiFetch(`/lessons/${lessonId}`),
@@ -335,69 +270,16 @@ export default function Lesson() {
     }).catch(() => setLoading(false))
   }, [lessonId])
 
-  // ── Scroll tracker ─────────────────────────────────────────────────
-  useEffect(() => {
-    const el = contentRef.current
-    if (!el || phase !== 'content') return
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = el
-      if (scrollHeight - scrollTop <= clientHeight + 80) setScrolled(true)
-    }
-    el.addEventListener('scroll', handleScroll)
-    handleScroll()
-    return () => el.removeEventListener('scroll', handleScroll)
-  }, [phase, loading, activeTab])
-
-  // ── Stop audio on tab change ───────────────────────────────────────
   useEffect(() => { stop() }, [activeTab])
 
-  if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', flexDirection: 'column', gap: 16 }}>
-      <div style={{ fontSize: 48, animation: 'pulse 1s infinite' }}>📖</div>
-      <div style={{ color: 'var(--text2)', fontSize: 15, fontWeight: 600 }}>Dars yuklanmoqda...</div>
-    </div>
-  )
+  // ── Tab change ──────────────────────────────────────────────────────
+  const handleTabClick = (key) => {
+    setDoneTabs(prev => new Set([...prev, activeTab]))
+    setActiveTab(key)
+    if (contentRef.current) contentRef.current.scrollTop = 0
+  }
 
-  if (!lesson) return (
-    <div style={{ padding: 24, textAlign: 'center', paddingTop: 80 }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>❌</div>
-      <div style={{ color: 'var(--text2)', fontSize: 15, marginBottom: 20 }}>Dars topilmadi</div>
-      <button className="btn btn-secondary" onClick={() => navigate(-1)}>← Orqaga</button>
-    </div>
-  )
-
-  const content = lesson.content || {}
-  const xp = lesson.xp_reward || lesson.xp || 10
-  const currentQuestion = quiz[currentQ]
-  const hasDialogues = content.dialogues?.length > 0
-
-  // ── Tabs config ────────────────────────────────────────────────────
-  const hasMatchPairs = content.match_pairs?.length > 0
-  const tabs = [
-    { key: 'intro',    label: '📖 Kirish' },
-    { key: 'grammar',  label: '✍️ Grammatika' },
-    { key: 'vocab',    label: '🔊 Lug\'at' },
-    ...(hasDialogues ? [{ key: 'dialogues', label: '💬 Dialog' }] : []),
-    { key: 'examples', label: '🌟 Misollar' },
-    ...(hasMatchPairs ? [{ key: 'match', label: '🃏 O\'yin' }] : []),
-    { key: 'notes',    label: '📝 Eslatma' },
-  ]
-
-  const tabStyle = (active) => ({
-    flex: 1,
-    padding: '7px 2px',
-    fontSize: 10,
-    fontWeight: active ? 800 : 500,
-    color: active ? 'var(--accent2)' : 'var(--text3)',
-    background: active ? 'var(--bg3)' : 'transparent',
-    border: 'none',
-    borderRadius: 8,
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    whiteSpace: 'nowrap'
-  })
-
-  // ── Quiz answer ────────────────────────────────────────────────────
+  // ── Quiz answer ─────────────────────────────────────────────────────
   const handleAnswer = (idx) => {
     if (revealed) return
     setSelected(idx)
@@ -406,9 +288,7 @@ export default function Lesson() {
     if (correct) scoreRef.current += 1
     setTimeout(() => {
       if (currentQ + 1 < quiz.length) {
-        setCurrentQ(q => q + 1)
-        setSelected(null)
-        setRevealed(false)
+        setCurrentQ(q => q + 1); setSelected(null); setRevealed(false)
       } else {
         const finalScore = Math.round((scoreRef.current / quiz.length) * 100)
         const passed = finalScore >= 60
@@ -419,395 +299,569 @@ export default function Lesson() {
           const isLesson1 = lessonId === 'topik-1-1' || lessonId === 'eps-1'
           if (passed && isLesson1) completeLesson1Referral().catch(() => {})
         }).catch(() => {})
-        setScore(finalScore)
-        setPhase('result')
+        setScore(finalScore); setPhase('result')
       }
     }, 900)
   }
 
-  // ════════════════════════════════════════════════════════
+  // ── Loading ──────────────────────────────────────────────────────────
+  if (loading) return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      height: '100dvh', flexDirection: 'column', gap: 14,
+      background: '#f5f3ff'
+    }}>
+      <div style={{ fontSize: 48 }}>📖</div>
+      <div style={{ color: '#7c3aed', fontSize: 14, fontWeight: 700 }}>Dars yuklanmoqda...</div>
+    </div>
+  )
+
+  if (!lesson) return (
+    <div style={{ padding: 24, textAlign: 'center', paddingTop: 80, background: '#f5f3ff', minHeight: '100dvh' }}>
+      <div style={{ fontSize: 48, marginBottom: 12 }}>❌</div>
+      <div style={{ color: '#6b7280', fontSize: 15, marginBottom: 20 }}>Dars topilmadi</div>
+      <button onClick={() => navigate(-1)} style={{
+        padding: '11px 24px', borderRadius: 14,
+        background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+        border: 'none', color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+      }}>← Orqaga</button>
+    </div>
+  )
+
+  const content = lesson.content || {}
+  const xp = lesson.xp_reward || lesson.xp || 10
+  const currentQuestion = quiz[currentQ]
+  const hasDialogues = content.dialogues?.length > 0
+  const hasMatchPairs = content.match_pairs?.length > 0
+
+  const TABS = [
+    { key: 'intro',     icon: '📖', name: 'Kirish',     sub: 'Dars haqida' },
+    { key: 'grammar',   icon: '✍️', name: 'Grammatika', sub: `${content.grammar?.length || 0} ta qoida` },
+    { key: 'vocab',     icon: '🔊', name: "Lug'at",     sub: `${content.vocabulary?.length || 0} ta so'z` },
+    ...(hasDialogues ? [{ key: 'dialogues', icon: '💬', name: 'Dialog',    sub: `${content.dialogues?.length} ta suhbat` }] : []),
+    { key: 'examples',  icon: '🌟', name: 'Misollar',   sub: 'Mashq qiling' },
+    ...(hasMatchPairs ? [{ key: 'match',    icon: '🃏', name: "O'yin",     sub: 'Match pairs' }] : []),
+    { key: 'notes',     icon: '📝', name: 'Eslatma',    sub: 'Xulosa' },
+  ]
+
+  const progressPct = Math.round(((TABS.findIndex(t => t.key === activeTab) + 1) / TABS.length) * 100)
+
+  // ════════════════════════════════════════════════════════════════════
   // CONTENT PHASE
-  // ════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════
   if (phase === 'content') return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100dvh',
+      background: '#f5f3ff', fontFamily: "'Segoe UI', system-ui, sans-serif"
+    }}>
 
-      {/* Header */}
-      <div className="header">
-        <button className="back-btn" onClick={() => { stop(); navigate(-1) }}>
-          <ChevronLeft size={18} color="var(--text)" />
+      {/* ── HEADER ── */}
+      <div style={{
+        background: 'white', padding: '14px 16px 12px',
+        display: 'flex', alignItems: 'center', gap: 10,
+        borderBottom: '0.5px solid rgba(124,58,237,0.1)',
+        flexShrink: 0
+      }}>
+        <button onClick={() => { stop(); navigate(-1) }} style={{
+          width: 32, height: 32, borderRadius: 10,
+          background: '#f5f3ff', border: '0.5px solid rgba(124,58,237,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', flexShrink: 0
+        }}>
+          <ChevronLeft size={16} color="#7c3aed" />
         </button>
-        <div className="header-title" style={{ fontSize: 12 }}>{lesson.title}</div>
-        <div className="badge badge-purple">+{xp} XP</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>
+            {lessonId.startsWith('eps') ? 'EPS-TOPIK' : `TOPIK ${lessonId.split('-')[1] || '1'}`} · {lesson.lesson_number || 1}-dars
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#1e1b4b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {lesson.title}
+          </div>
+        </div>
+        <div style={{
+          background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+          color: 'white', fontSize: 12, fontWeight: 800,
+          padding: '4px 12px', borderRadius: 20, flexShrink: 0
+        }}>+{xp} XP</div>
       </div>
 
-      {/* Progress bar */}
-      <div style={{ height: 3, background: 'var(--bg3)' }}>
-        <div style={{ height: '100%', background: 'linear-gradient(90deg, var(--accent), var(--accent2))', width: scrolled ? '100%' : '30%', transition: 'width 0.5s' }} />
+      {/* ── PROGRESS BAR ── */}
+      <div style={{ height: 4, background: '#ede9fe', flexShrink: 0 }}>
+        <div style={{
+          height: '100%',
+          background: 'linear-gradient(90deg, #7c3aed, #a855f7)',
+          width: `${progressPct}%`, transition: 'width 0.4s'
+        }} />
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 3, padding: '7px 8px', background: 'var(--bg)', borderBottom: '0.5px solid var(--border)', overflowX: 'auto' }}>
-        {tabs.map(tab => (
-          <button key={tab.key} style={tabStyle(activeTab === tab.key)} onClick={() => setActiveTab(tab.key)}>
-            {tab.label}
-          </button>
+      {/* ── PROGRESS DOTS ── */}
+      <div style={{
+        display: 'flex', gap: 5, padding: '8px 16px 0',
+        background: 'white', flexShrink: 0, alignItems: 'center', justifyContent: 'center'
+      }}>
+        {TABS.map(t => (
+          <div key={t.key} style={{
+            width: 8, height: 8, borderRadius: '50%',
+            background: t.key === activeTab ? '#7c3aed' : doneTabs.has(t.key) ? '#a3e635' : '#ddd6fe',
+            transition: 'background 0.3s'
+          }} />
         ))}
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', marginLeft: 6 }}>
+          {TABS.findIndex(t => t.key === activeTab) + 1}/{TABS.length}
+        </div>
       </div>
 
-      {/* Content */}
-      <div ref={contentRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 14px 100px' }}>
+      {/* ── BODY: TAB LIST + CONTENT ── */}
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
-        {/* ── INTRO TAB ── */}
-        {activeTab === 'intro' && (
-          <div>
-            {content.goals?.length > 0 && (
-              <div style={{ background: 'linear-gradient(135deg, #fce4ec, #fdf2f8)', borderRadius: 16, padding: '14px 16px', marginBottom: 14, border: '1px solid #f8bbd0' }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--accent2)', marginBottom: 10 }}>🎯 Bu darsda nima o'rganamiz?</div>
-                {content.goals.map((g, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'flex-start' }}>
-                    <span style={{ color: 'var(--accent)', fontWeight: 800, fontSize: 14, flexShrink: 0 }}>✓</span>
-                    <span style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.5 }}>{g}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {content.intro_kr && (
-              <div className="card" style={{ marginBottom: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                  <span style={{ fontSize: 18 }}>🇰🇷</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', letterSpacing: 0.5 }}>한국어</span>
-                </div>
-                <p className="kr" style={{ fontSize: 14, lineHeight: 1.9, color: 'var(--text)' }}>{content.intro_kr}</p>
-              </div>
-            )}
-            {content.intro_uz && (
-              <div className="card" style={{ marginBottom: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                  <span style={{ fontSize: 18 }}>🇺🇿</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', letterSpacing: 0.5 }}>O'zbekcha</span>
-                </div>
-                <p style={{ fontSize: 14, lineHeight: 1.9, color: 'var(--text2)' }}>{content.intro_uz}</p>
-              </div>
-            )}
-            {content.summary && (
-              <div style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent2))', borderRadius: 14, padding: '14px 16px', marginTop: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: 'white', marginBottom: 6, letterSpacing: 0.5 }}>⚡ QISQA XULOSA</div>
-                <p style={{ fontSize: 13, color: 'white', lineHeight: 1.7 }}>{content.summary}</p>
-              </div>
-            )}
+        {/* TAB CARDS (stacked style) */}
+        <div style={{ padding: '10px 14px 6px', background: 'white', flexShrink: 0 }}>
+          <div style={{ display: 'flex', overflowX: 'auto', gap: 8, paddingBottom: 4, scrollbarWidth: 'none' }}>
+            {TABS.map((t) => {
+              const isActive = activeTab === t.key
+              const isDone   = doneTabs.has(t.key)
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => handleTabClick(t.key)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '8px 13px', borderRadius: 20, flexShrink: 0,
+                    background: isActive
+                      ? 'linear-gradient(135deg, #7c3aed, #a855f7)'
+                      : isDone ? '#f0fdf4' : '#f5f3ff',
+                    border: isActive
+                      ? 'none'
+                      : isDone ? '1px solid rgba(21,128,61,0.3)' : '0.5px solid rgba(124,58,237,0.2)',
+                    cursor: 'pointer', transition: 'all 0.2s',
+                    boxShadow: isActive ? '0 4px 12px rgba(124,58,237,0.3)' : 'none'
+                  }}>
+                  <span style={{ fontSize: 14 }}>{t.icon}</span>
+                  <span style={{
+                    fontSize: 12, fontWeight: 800,
+                    color: isActive ? 'white' : isDone ? '#15803d' : '#7c3aed'
+                  }}>{t.name}</span>
+                  {isDone && !isActive && (
+                    <span style={{ fontSize: 10, color: '#15803d', fontWeight: 800 }}>✓</span>
+                  )}
+                </button>
+              )
+            })}
           </div>
-        )}
+        </div>
 
-        {/* ── GRAMMAR TAB ── */}
-        {activeTab === 'grammar' && (
-          <div>
-            {Array.isArray(content.grammar) ? content.grammar.map((g, gi) => (
-              <div key={gi} style={{ marginBottom: 22 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent), var(--accent2))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 14, fontWeight: 900, flexShrink: 0 }}>
-                    {gi + 1}
-                  </div>
-                  <div>
-                    <div className="kr" style={{ fontSize: 16, fontWeight: 900, color: 'var(--accent2)', lineHeight: 1.2 }}>{g.title_kr}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>{g.title_uz}</div>
-                  </div>
-                </div>
-                <div style={{ background: 'var(--bg3)', borderRadius: 14, padding: '12px 14px', marginBottom: 12, borderLeft: '4px solid var(--accent)' }}>
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                    <span style={{ fontSize: 16 }}>🇰🇷</span>
-                    <p className="kr" style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text)', whiteSpace: 'pre-line' }}>{g.explanation_kr}</p>
-                  </div>
-                  <div style={{ height: 1, background: 'var(--border)', margin: '8px 0' }} />
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <span style={{ fontSize: 16 }}>🇺🇿</span>
-                    <p style={{ fontSize: 13, lineHeight: 1.8, color: 'var(--text2)', whiteSpace: 'pre-line' }}>{g.explanation_uz}</p>
-                  </div>
-                </div>
-                {g.examples?.map((ex, ei) => (
-                  <div key={ei} style={{ background: 'var(--card)', borderRadius: 12, padding: '12px 14px', marginBottom: 8, borderLeft: '3px solid var(--purple)', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                      <div className="kr" style={{ fontSize: 17, fontWeight: 700, color: 'var(--accent2)', lineHeight: 1.4, flex: 1 }}>{ex.kr}</div>
-                      <AudioBtn isPlaying={speakingId === `gr-${gi}-${ei}`} onPress={() => speak(ex.kr, `gr-${gi}-${ei}`)} size={34} />
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--text3)', fontStyle: 'italic', margin: '4px 0' }}>{ex.rom}</div>
-                    <div style={{ fontSize: 13, color: 'var(--text2)', fontWeight: 500 }}>{ex.uz}</div>
-                  </div>
-                ))}
-              </div>
-            )) : (
-              <div className="card"><p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.7 }}>{content.grammar}</p></div>
-            )}
-          </div>
-        )}
+        {/* CONTENT AREA */}
+        <div
+          ref={contentRef}
+          style={{ flex: 1, overflowY: 'auto', padding: '14px 14px 100px' }}>
 
-        {/* ── VOCAB TAB with AUDIO ── */}
-        {activeTab === 'vocab' && (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <div style={{ fontSize: 13, color: 'var(--text3)', fontWeight: 600 }}>
-                📚 {content.vocabulary?.length || 0} ta so'z
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--accent)', fontWeight: 700 }}>
-                <Volume2 size={14} color="var(--accent)" />
-                Bosib eshiting!
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {content.vocabulary?.map((v, i) => (
-                <div key={i} style={{
-                  background: 'var(--card)',
-                  borderRadius: 14,
-                  padding: '14px 16px',
-                  boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
-                  border: speakingId === i ? '1.5px solid var(--accent)' : '1.5px solid transparent',
-                  transition: 'all 0.2s'
+          {/* ── ACTIVE TAB CARD HEADER ── */}
+          <div style={{
+            background: 'white',
+            borderRadius: 20,
+            border: '1px solid rgba(124,58,237,0.12)',
+            overflow: 'hidden',
+            marginBottom: 12
+          }}>
+            {/* Card top strip */}
+            <div style={{
+              background: 'linear-gradient(135deg, #1e1b4b, #3730a3)',
+              padding: '14px 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 11,
+                  background: 'rgba(255,255,255,0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 18
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text3)', flexShrink: 0 }}>
-                      {i + 1}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div className="kr" style={{ fontSize: 22, fontWeight: 700, color: 'var(--accent2)', lineHeight: 1.2 }}>{v.korean}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 3, fontStyle: 'italic' }}>{v.romanization}</div>
-                    </div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text2)', textAlign: 'right', maxWidth: 110 }}>{v.uzbek}</div>
-                    <AudioBtn isPlaying={speakingId === i} onPress={() => speak(v.korean, i)} size={40} />
+                  {TABS.find(t => t.key === activeTab)?.icon}
+                </div>
+                <div>
+                  <div style={{ color: 'white', fontSize: 14, fontWeight: 900 }}>
+                    {TABS.find(t => t.key === activeTab)?.name}
+                  </div>
+                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
+                    {TABS.find(t => t.key === activeTab)?.sub}
                   </div>
                 </div>
-              ))}
-            </div>
-            <button
-              onClick={() => speakAll(content.vocabulary || [], v => v.korean)}
-              style={{ width: '100%', marginTop: 18, padding: '14px', borderRadius: 14, border: '2px solid var(--accent)', background: speakingId?.toString().startsWith('all') ? 'var(--accent)' : 'transparent', color: speakingId?.toString().startsWith('all') ? 'white' : 'var(--accent)', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
-              <Volume2 size={18} color={speakingId?.toString().startsWith('all') ? 'white' : 'var(--accent)'} />
-              {speakingId?.toString().startsWith('all') ? '⏹️ To\'xtatish' : '▶️ Hammasini eshitish'}
-            </button>
-          </div>
-        )}
-
-        {/* ── DIALOGUES TAB ── */}
-        {activeTab === 'dialogues' && (
-          <div>
-            <div style={{ textAlign: 'center', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, color: 'var(--text3)', fontWeight: 600 }}>
-                💬 {content.dialogues?.length || 0} ta dialog — bosib eshiting!
               </div>
+              {doneTabs.has(activeTab) && (
+                <div style={{
+                  background: '#a3e635', color: '#1a2e05',
+                  fontSize: 10, fontWeight: 800, padding: '3px 9px', borderRadius: 20
+                }}>✓ Ko'rildi</div>
+              )}
             </div>
 
-            {content.dialogues?.map((dialog, di) => (
-              <div key={di} style={{ marginBottom: 20 }}>
-                {/* Dialog header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--accent2)' }}>
-                    {dialog.title}
-                  </div>
-                  {/* Play all button for this dialog */}
-                  <button
-                    onClick={() => {
-                      if (speakingId === `dialog-all-${di}`) {
-                        stop()
-                      } else {
-                        speakAll(dialog.lines, l => l.kr)
-                      }
-                    }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 5,
-                      padding: '6px 12px',
-                      borderRadius: 20,
-                      border: '1.5px solid var(--accent)',
-                      background: speakingId === `dialog-all-${di}` ? 'var(--accent)' : 'transparent',
-                      color: speakingId === `dialog-all-${di}` ? 'white' : 'var(--accent)',
-                      fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                      transition: 'all 0.2s'
+            {/* Card content */}
+            <div style={{ padding: '16px' }}>
+
+              {/* ── INTRO ── */}
+              {activeTab === 'intro' && (
+                <div>
+                  {content.goals?.length > 0 && (
+                    <div style={{
+                      background: '#f5f3ff', borderRadius: 14, padding: '12px 14px',
+                      marginBottom: 14, border: '0.5px solid rgba(124,58,237,0.15)'
                     }}>
-                    <Volume2 size={13} color={speakingId === `dialog-all-${di}` ? 'white' : 'var(--accent)'} />
-                    {speakingId === `dialog-all-${di}` ? 'To\'xtat' : 'Ijro et'}
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#7c3aed', marginBottom: 10 }}>
+                        🎯 Bu darsda nima o'rganamiz?
+                      </div>
+                      {content.goals.map((g, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'flex-start' }}>
+                          <span style={{ color: '#a3e635', fontWeight: 900, fontSize: 14, flexShrink: 0,
+                            background: '#1e1b4b', width: 18, height: 18, borderRadius: '50%',
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>✓</span>
+                          <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.55 }}>{g}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {content.intro_kr && (
+                    <div style={{ background: '#f5f3ff', borderRadius: 14, padding: '13px 14px', marginBottom: 10, border: '0.5px solid rgba(124,58,237,0.12)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        <span style={{ fontSize: 16 }}>🇰🇷</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: 0.5 }}>한국어</span>
+                      </div>
+                      <p className="kr" style={{ fontSize: 13, lineHeight: 1.9, color: '#1e1b4b', whiteSpace: 'pre-line' }}>{content.intro_kr}</p>
+                    </div>
+                  )}
+                  {content.intro_uz && (
+                    <div style={{ background: 'white', borderRadius: 14, padding: '13px 14px', marginBottom: 10, border: '0.5px solid rgba(124,58,237,0.1)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        <span style={{ fontSize: 16 }}>🇺🇿</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: 0.5 }}>O'zbekcha</span>
+                      </div>
+                      <p style={{ fontSize: 13, lineHeight: 1.9, color: '#374151', whiteSpace: 'pre-line' }}>{content.intro_uz}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── GRAMMAR ── */}
+              {activeTab === 'grammar' && (
+                <div>
+                  {Array.isArray(content.grammar) ? content.grammar.map((g, gi) => (
+                    <div key={gi} style={{ marginBottom: 20 }}>
+                      {/* Grammar rule card - dark */}
+                      <div style={{
+                        background: 'linear-gradient(135deg, #1e1b4b, #3730a3)',
+                        borderRadius: 16, padding: '14px 16px', marginBottom: 12
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                          <div style={{
+                            width: 28, height: 28, borderRadius: '50%',
+                            background: '#a3e635',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: '#1a2e05', fontSize: 13, fontWeight: 900, flexShrink: 0
+                          }}>{gi + 1}</div>
+                          <div>
+                            <div className="kr" style={{ fontSize: 15, fontWeight: 900, color: 'white' }}>{g.title_kr}</div>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1 }}>{g.title_uz}</div>
+                          </div>
+                        </div>
+                        <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 12px', marginBottom: 8 }}>
+                          <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                            <span style={{ fontSize: 14 }}>🇰🇷</span>
+                            <p className="kr" style={{ fontSize: 12, lineHeight: 1.8, color: 'rgba(255,255,255,0.85)', whiteSpace: 'pre-line' }}>{g.explanation_kr}</p>
+                          </div>
+                          <div style={{ height: 0.5, background: 'rgba(255,255,255,0.1)', margin: '8px 0' }} />
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <span style={{ fontSize: 14 }}>🇺🇿</span>
+                            <p style={{ fontSize: 12, lineHeight: 1.8, color: 'rgba(255,255,255,0.65)', whiteSpace: 'pre-line' }}>{g.explanation_uz}</p>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Examples */}
+                      {g.examples?.map((ex, ei) => (
+                        <div key={ei} style={{
+                          background: '#f5f3ff', borderRadius: 14, padding: '12px 14px', marginBottom: 8,
+                          borderLeft: '3px solid #7c3aed'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                            <div className="kr" style={{ fontSize: 16, fontWeight: 800, color: '#1e1b4b', lineHeight: 1.4, flex: 1 }}>{ex.kr}</div>
+                            <AudioBtn isPlaying={speakingId === `gr-${gi}-${ei}`} onPress={() => speak(ex.kr, `gr-${gi}-${ei}`)} size={34} />
+                          </div>
+                          <div style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic', marginBottom: 5 }}>{ex.rom}</div>
+                          <div style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>🇺🇿 {ex.uz}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )) : (
+                    <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7 }}>{content.grammar}</p>
+                  )}
+                </div>
+              )}
+
+              {/* ── VOCAB ── */}
+              {activeTab === 'vocab' && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>
+                      📚 {content.vocabulary?.length || 0} ta so'z
+                    </div>
+                    <div style={{ fontSize: 12, color: '#7c3aed', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Volume2 size={12} color="#7c3aed" /> Bosib eshiting!
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {content.vocabulary?.map((v, i) => (
+                      <div key={i} style={{
+                        background: speakingId === i ? '#ede9fe' : '#f5f3ff',
+                        borderRadius: 14, padding: '12px 14px',
+                        border: `1px solid ${speakingId === i ? 'rgba(124,58,237,0.4)' : 'rgba(124,58,237,0.12)'}`,
+                        transition: 'all 0.2s'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{
+                            width: 30, height: 30, borderRadius: '50%',
+                            background: '#1e1b4b',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 11, fontWeight: 800, color: '#a3e635', flexShrink: 0
+                          }}>{i + 1}</div>
+                          <div style={{ flex: 1 }}>
+                            <div className="kr" style={{ fontSize: 20, fontWeight: 800, color: '#1e1b4b', lineHeight: 1.2 }}>{v.korean}</div>
+                            <div style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic', marginTop: 2 }}>{v.romanization}</div>
+                          </div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#15803d', textAlign: 'right', maxWidth: 100 }}>{v.uzbek}</div>
+                          <AudioBtn isPlaying={speakingId === i} onPress={() => speak(v.korean, i)} size={38} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => speakAll(content.vocabulary || [], v => v.korean)}
+                    style={{
+                      width: '100%', marginTop: 14, padding: '13px',
+                      borderRadius: 14,
+                      border: `1.5px solid #7c3aed`,
+                      background: speakingId?.toString().startsWith('all') ? 'linear-gradient(135deg,#7c3aed,#a855f7)' : 'transparent',
+                      color: speakingId?.toString().startsWith('all') ? 'white' : '#7c3aed',
+                      fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s'
+                    }}>
+                    <Volume2 size={16} color={speakingId?.toString().startsWith('all') ? 'white' : '#7c3aed'} />
+                    {speakingId?.toString().startsWith('all') ? '⏹️ To\'xtatish' : '▶️ Hammasini eshitish'}
                   </button>
                 </div>
+              )}
 
-                {/* Chat bubbles */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {dialog.lines?.map((line, li) => {
-                    const isA = line.speaker === 'A'
-                    const lineId = `dlg-${di}-${li}`
-                    const isPlaying = speakingId === lineId
-
-                    return (
-                      <div key={li} style={{
-                        display: 'flex',
-                        flexDirection: isA ? 'row' : 'row-reverse',
-                        alignItems: 'flex-end',
-                        gap: 8
-                      }}>
-                        {/* Avatar */}
-                        <div style={{
-                          width: 32, height: 32,
-                          borderRadius: '50%',
-                          background: isA
-                            ? 'linear-gradient(135deg, #f472b6, #ec4899)'
-                            : 'linear-gradient(135deg, #c084fc, #a855f7)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: 'white', fontSize: 13, fontWeight: 800,
-                          flexShrink: 0
+              {/* ── DIALOGUES ── */}
+              {activeTab === 'dialogues' && (
+                <div>
+                  {content.dialogues?.map((dialog, di) => (
+                    <div key={di} style={{ marginBottom: 20 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#1e1b4b' }}>{dialog.title}</div>
+                        <button onClick={() => {
+                          if (speakingId === `dialog-all-${di}`) stop()
+                          else speakAll(dialog.lines, l => l.kr)
+                        }} style={{
+                          display: 'flex', alignItems: 'center', gap: 5,
+                          padding: '5px 11px', borderRadius: 20,
+                          border: '1px solid rgba(124,58,237,0.3)',
+                          background: speakingId === `dialog-all-${di}` ? 'linear-gradient(135deg,#7c3aed,#a855f7)' : '#f5f3ff',
+                          color: speakingId === `dialog-all-${di}` ? 'white' : '#7c3aed',
+                          fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
                         }}>
-                          {line.speaker}
-                        </div>
-
-                        {/* Bubble */}
-                        <div style={{
-                          maxWidth: '72%',
-                          background: isA ? 'var(--card)' : 'linear-gradient(135deg, #fce4ec, #fdf2f8)',
-                          borderRadius: isA
-                            ? '18px 18px 18px 4px'
-                            : '18px 18px 4px 18px',
-                          padding: '10px 14px',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                          border: isPlaying
-                            ? '1.5px solid var(--accent)'
-                            : `1.5px solid ${isA ? 'var(--border)' : '#f8bbd0'}`,
-                          transition: 'all 0.2s',
-                          position: 'relative'
-                        }}>
-                          {/* Korean text */}
-                          <div className="kr" style={{
-                            fontSize: 16, fontWeight: 700,
-                            color: isA ? 'var(--text)' : 'var(--accent2)',
-                            lineHeight: 1.4, marginBottom: 4
-                          }}>
-                            {line.kr}
-                          </div>
-
-                          {/* Romanization */}
-                          <div style={{
-                            fontSize: 11, color: 'var(--text3)',
-                            fontStyle: 'italic', marginBottom: 5,
-                            lineHeight: 1.4
-                          }}>
-                            {line.rom}
-                          </div>
-
-                          {/* Uzbek translation */}
-                          <div style={{
-                            fontSize: 13, color: 'var(--text2)',
-                            fontWeight: 500, lineHeight: 1.4
-                          }}>
-                            🇺🇿 {line.uz}
-                          </div>
-                        </div>
-
-                        {/* Audio button */}
-                        <AudioBtn
-                          isPlaying={isPlaying}
-                          onPress={() => speak(line.kr, lineId)}
-                          size={34}
-                        />
+                          <Volume2 size={11} color={speakingId === `dialog-all-${di}` ? 'white' : '#7c3aed'} />
+                          {speakingId === `dialog-all-${di}` ? 'To\'xtat' : 'Ijro et'}
+                        </button>
                       </div>
-                    )
-                  })}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {dialog.lines?.map((line, li) => {
+                          const isA = line.speaker === 'A'
+                          const lineId = `dlg-${di}-${li}`
+                          const isPlaying = speakingId === lineId
+                          return (
+                            <div key={li} style={{ display: 'flex', flexDirection: isA ? 'row' : 'row-reverse', alignItems: 'flex-end', gap: 8 }}>
+                              <div style={{
+                                width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                                background: isA ? '#ede9fe' : '#dcfce7',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 12, fontWeight: 800,
+                                color: isA ? '#7c3aed' : '#15803d'
+                              }}>{line.speaker}</div>
+                              <div style={{
+                                maxWidth: '72%',
+                                background: isA ? 'white' : '#ede9fe',
+                                borderRadius: isA ? '18px 18px 18px 4px' : '18px 18px 4px 18px',
+                                padding: '10px 14px',
+                                border: isPlaying
+                                  ? '1.5px solid #7c3aed'
+                                  : `0.5px solid ${isA ? 'rgba(124,58,237,0.15)' : 'rgba(124,58,237,0.2)'}`,
+                                transition: 'all 0.2s'
+                              }}>
+                                <div className="kr" style={{ fontSize: 14, fontWeight: 700, color: '#1e1b4b', lineHeight: 1.4, marginBottom: 3 }}>{line.kr}</div>
+                                <div style={{ fontSize: 10, color: '#9ca3af', fontStyle: 'italic', marginBottom: 4 }}>{line.rom}</div>
+                                <div style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>🇺🇿 {line.uz}</div>
+                                <div style={{ marginTop: 6 }}>
+                                  <button onClick={() => speak(line.kr, lineId)} style={{
+                                    display: 'flex', alignItems: 'center', gap: 4,
+                                    background: 'none', border: 'none', cursor: 'pointer', padding: 0
+                                  }}>
+                                    <div style={{
+                                      width: 22, height: 22, borderRadius: '50%',
+                                      background: '#f5f3ff', border: '0.5px solid rgba(124,58,237,0.2)',
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}>
+                                      <Volume2 size={10} color="#7c3aed" />
+                                    </div>
+                                    <span style={{ fontSize: 10, color: '#9ca3af' }}>Tinglash</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      {di < (content.dialogues?.length || 0) - 1 && (
+                        <div style={{ height: 0.5, background: 'rgba(124,58,237,0.1)', margin: '16px 0 0' }} />
+                      )}
+                    </div>
+                  ))}
                 </div>
+              )}
 
-                {/* Divider between dialogs */}
-                {di < (content.dialogues?.length || 0) - 1 && (
-                  <div style={{ height: 1, background: 'var(--border)', margin: '20px 0 0' }} />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+              {/* ── EXAMPLES ── */}
+              {activeTab === 'examples' && (
+                <div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600, marginBottom: 12, textAlign: 'center' }}>
+                    🌟 Asosiy jumlalar — 🔊 bosib eshiting!
+                  </div>
+                  {content.examples?.map((ex, i) => (
+                    <div key={i} style={{
+                      background: '#f5f3ff', borderRadius: 16, padding: '13px 14px',
+                      marginBottom: 10, borderLeft: '3px solid #7c3aed'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+                        <div className="kr" style={{ fontSize: 16, fontWeight: 800, color: '#1e1b4b', lineHeight: 1.5, flex: 1 }}>{ex.korean}</div>
+                        <AudioBtn isPlaying={speakingId === `ex-${i}`} onPress={() => speak(ex.korean, `ex-${i}`)} size={34} />
+                      </div>
+                      <div style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic', marginBottom: 6 }}>{ex.romanization}</div>
+                      <div style={{ height: 0.5, background: 'rgba(124,58,237,0.1)', marginBottom: 6 }} />
+                      <div style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>🇺🇿 {ex.uzbek}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-        {/* ── EXAMPLES TAB ── */}
-        {activeTab === 'examples' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontSize: 13, color: 'var(--text3)', fontWeight: 600, marginBottom: 4, textAlign: 'center' }}>
-              🌟 Asosiy jumlalar — 🔊 bosib eshiting!
+              {/* ── MATCH PAIRS ── */}
+              {activeTab === 'match' && (
+                <MatchPairsGame pairs={content.match_pairs || []} />
+              )}
+
+              {/* ── NOTES ── */}
+              {activeTab === 'notes' && (
+                <div>
+                  {content.takenotes?.map((note, i) => (
+                    <div key={i} style={{
+                      display: 'flex', alignItems: 'flex-start', gap: 10,
+                      marginBottom: 8, padding: '10px 12px',
+                      background: 'white', borderRadius: 12,
+                      border: '0.5px solid rgba(124,58,237,0.12)'
+                    }}>
+                      <span style={{ color: '#7c3aed', fontWeight: 900, fontSize: 16, flexShrink: 0 }}>•</span>
+                      <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.65 }}>{note}</span>
+                    </div>
+                  ))}
+                  {content.summary && (
+                    <div style={{
+                      background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+                      borderRadius: 16, padding: '14px 16px', marginTop: 8
+                    }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.7)', marginBottom: 6, letterSpacing: 1 }}>
+                        ⚡ QISQA XULOSA
+                      </div>
+                      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.92)', lineHeight: 1.75 }}>{content.summary}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
-            {content.examples?.map((ex, i) => (
-              <div key={i} style={{ background: 'var(--card)', borderRadius: 16, padding: '14px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderLeft: '4px solid var(--accent)' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-                  <div className="kr" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', lineHeight: 1.5, flex: 1 }}>{ex.korean}</div>
-                  <AudioBtn isPlaying={speakingId === `ex-${i}`} onPress={() => speak(ex.korean, `ex-${i}`)} size={36} />
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text3)', fontStyle: 'italic', marginBottom: 8 }}>{ex.romanization}</div>
-                <div style={{ height: 1, background: 'var(--border)', marginBottom: 8 }} />
-                <div style={{ fontSize: 14, color: 'var(--text2)', fontWeight: 500 }}>🇺🇿 {ex.uzbek}</div>
-              </div>
-            ))}
           </div>
-        )}
-
-        {/* ── MATCH PAIRS TAB ── */}
-        {activeTab === 'match' && (
-          <MatchPairsGame pairs={content.match_pairs || []} />
-        )}
-
-        {/* ── NOTES TAB ── */}
-        {activeTab === 'notes' && (
-          <div>
-            <div style={{ background: 'var(--bg3)', borderRadius: 16, padding: '16px', marginBottom: 14 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--accent2)', marginBottom: 12 }}>
-                📝 Eslab qolish kerak!
-              </div>
-              {content.takenotes?.map((note, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10, padding: '10px 12px', background: 'var(--bg)', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                  <span style={{ color: 'var(--accent)', fontWeight: 900, fontSize: 16, flexShrink: 0 }}>•</span>
-                  <span style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>{note}</span>
-                </div>
-              ))}
-            </div>
-            {content.summary && (
-              <div style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent2))', borderRadius: 16, padding: '16px' }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: 'white', marginBottom: 8, letterSpacing: 0.5 }}>⚡ QISQA XULOSA</div>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.95)', lineHeight: 1.8 }}>{content.summary}</p>
-              </div>
-            )}
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Bottom button */}
-      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '12px 16px 20px', background: 'var(--bg)', borderTop: '0.5px solid var(--border)' }}>
+      {/* ── BOTTOM BUTTON ── */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+        width: '100%', maxWidth: 430,
+        padding: '12px 16px 20px',
+        background: 'white', borderTop: '0.5px solid rgba(124,58,237,0.1)'
+      }}>
         {quiz.length > 0 ? (
-          <button className="btn btn-primary" onClick={() => { stop(); setPhase('quiz') }}
-            style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent2))', border: 'none' }}>
+          <button onClick={() => { stop(); setPhase('quiz') }} style={{
+            width: '100%', padding: '14px',
+            background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+            border: 'none', borderRadius: 14,
+            color: 'white', fontSize: 14, fontWeight: 800, cursor: 'pointer'
+          }}>
             📝 Testni boshlash — {quiz.length} ta savol
           </button>
         ) : (
-          <button className="btn btn-secondary" onClick={() => navigate(-1)}>← Orqaga</button>
+          <button onClick={() => navigate(-1)} style={{
+            width: '100%', padding: '14px',
+            background: '#f5f3ff',
+            border: '1px solid rgba(124,58,237,0.2)', borderRadius: 14,
+            color: '#7c3aed', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+          }}>← Orqaga</button>
         )}
       </div>
     </div>
   )
 
-  // ════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════
   // QUIZ PHASE
-  // ════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════
   if (phase === 'quiz') return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
-      <div className="header">
-        <button className="back-btn" onClick={() => setPhase('content')}>
-          <ChevronLeft size={18} color="var(--text)" />
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100dvh',
+      background: '#f5f3ff'
+    }}>
+      {/* Header */}
+      <div style={{
+        background: 'white', padding: '14px 16px',
+        display: 'flex', alignItems: 'center', gap: 10,
+        borderBottom: '0.5px solid rgba(124,58,237,0.1)'
+      }}>
+        <button onClick={() => setPhase('content')} style={{
+          width: 32, height: 32, borderRadius: 10, background: '#f5f3ff',
+          border: '0.5px solid rgba(124,58,237,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+        }}>
+          <ChevronLeft size={16} color="#7c3aed" />
         </button>
-        <div className="header-title">🎯 Test</div>
-        <div style={{ fontSize: 13, color: 'var(--text3)', fontWeight: 700 }}>
-          {currentQ + 1} / {quiz.length}
-        </div>
+        <div style={{ flex: 1, fontWeight: 800, fontSize: 14, color: '#1e1b4b' }}>🎯 Mini Test</div>
+        <div style={{
+          background: '#ede9fe', color: '#7c3aed',
+          fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 20
+        }}>{currentQ + 1} / {quiz.length}</div>
       </div>
 
       {/* Progress */}
-      <div style={{ height: 6, background: 'var(--bg3)', borderRadius: 3 }}>
+      <div style={{ height: 5, background: '#ede9fe' }}>
         <div style={{
           height: '100%',
-          background: 'linear-gradient(90deg, var(--accent), var(--accent2))',
-          width: `${((currentQ) / quiz.length) * 100}%`,
-          transition: 'width 0.4s',
-          borderRadius: 3
+          background: 'linear-gradient(90deg, #7c3aed, #a855f7)',
+          width: `${(currentQ / quiz.length) * 100}%`,
+          transition: 'width 0.4s'
         }} />
       </div>
 
-      <div style={{ flex: 1, padding: '24px 16px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      <div style={{ flex: 1, padding: '20px 16px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
         {/* Question */}
-        <div style={{ background: 'var(--card)', borderRadius: 20, padding: '20px 18px', marginBottom: 24, boxShadow: '0 4px 16px rgba(0,0,0,0.08)', border: '1px solid var(--border)' }}>
-          <p style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.6, color: 'var(--text)' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #1e1b4b, #3730a3)',
+          borderRadius: 20, padding: '20px 18px', marginBottom: 20
+        }}>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 700, letterSpacing: 1, marginBottom: 8 }}>
+            SAVOL {currentQ + 1}
+          </div>
+          <p style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.65, color: 'white' }}>
             {currentQuestion?.question}
           </p>
         </div>
@@ -815,35 +869,34 @@ export default function Lesson() {
         {/* Options */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {currentQuestion?.options?.map((opt, i) => {
-            const isCorrect = i === currentQuestion.correct_index
+            const isCorrect  = i === currentQuestion.correct_index
             const isSelected = i === selected
-            let bg = 'var(--card)'
-            let border = 'var(--border)'
-            let color = 'var(--text)'
+            let bg     = 'white'
+            let border = 'rgba(124,58,237,0.15)'
+            let color  = '#1e1b4b'
             if (revealed) {
-              if (isCorrect) { bg = '#d4edda'; border = '#28a745'; color = '#155724' }
-              else if (isSelected) { bg = '#f8d7da'; border = '#dc3545'; color = '#721c24' }
-            } else if (isSelected) { bg = 'var(--bg3)'; border = 'var(--accent)' }
-
+              if (isCorrect)        { bg = '#dcfce7'; border = '#16a34a'; color = '#15803d' }
+              else if (isSelected)  { bg = '#fee2e2'; border = '#dc2626'; color = '#991b1b' }
+            } else if (isSelected) { bg = '#ede9fe'; border = '#7c3aed' }
             return (
               <button key={i} onClick={() => handleAnswer(i)} style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '14px 16px', borderRadius: 14,
-                background: bg, border: `1.5px solid ${border}`,
-                color, fontSize: 14, fontWeight: 600,
-                cursor: revealed ? 'default' : 'pointer',
-                textAlign: 'left', transition: 'all 0.2s',
-                boxShadow: isSelected && !revealed ? '0 2px 8px rgba(244,114,182,0.3)' : 'none'
+                background: bg, border: `1.5px solid ${border}`, color,
+                fontSize: 14, fontWeight: 600, cursor: revealed ? 'default' : 'pointer',
+                textAlign: 'left', transition: 'all 0.2s'
               }}>
                 <div style={{
                   width: 30, height: 30, borderRadius: '50%',
                   background: revealed
-                    ? (isCorrect ? '#28a745' : isSelected ? '#dc3545' : 'var(--bg)')
-                    : (isSelected ? 'var(--accent)' : 'var(--bg)'),
-                  border: `1.5px solid ${revealed ? (isCorrect ? '#28a745' : isSelected ? '#dc3545' : 'var(--border2)') : (isSelected ? 'var(--accent)' : 'var(--border2)')}`,
+                    ? (isCorrect ? '#16a34a' : isSelected ? '#dc2626' : '#f5f3ff')
+                    : (isSelected ? '#7c3aed' : '#f5f3ff'),
+                  border: `1.5px solid ${revealed
+                    ? (isCorrect ? '#16a34a' : isSelected ? '#dc2626' : 'rgba(124,58,237,0.15)')
+                    : (isSelected ? '#7c3aed' : 'rgba(124,58,237,0.15)')}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 800, flexShrink: 0,
-                  color: (revealed && (isCorrect || isSelected)) ? 'white' : isSelected ? 'white' : 'var(--text3)',
+                  fontSize: 12, fontWeight: 800, flexShrink: 0,
+                  color: (revealed && (isCorrect || isSelected)) ? 'white' : isSelected ? 'white' : '#9ca3af',
                   transition: 'all 0.2s'
                 }}>
                   {revealed && isCorrect ? '✓' : revealed && isSelected ? '✗' : String.fromCharCode(65 + i)}
@@ -857,56 +910,68 @@ export default function Lesson() {
     </div>
   )
 
-  // ════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════
   // RESULT PHASE
-  // ════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════
   const passed = score >= 60
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', padding: '40px 24px 32px', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-      <div style={{ fontSize: 80, marginBottom: 16 }} className="pop-in">
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100dvh',
+      background: '#f5f3ff',
+      padding: '40px 24px 32px', alignItems: 'center', justifyContent: 'center', textAlign: 'center'
+    }}>
+      <div style={{ fontSize: 80, marginBottom: 16 }}>
         {passed ? '🎉' : '😔'}
       </div>
-      <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 8, color: 'var(--text)' }}>
+      <h2 style={{ fontSize: 24, fontWeight: 900, marginBottom: 8, color: '#1e1b4b' }}>
         {passed ? "Ajoyib! O'tdingiz! 🌟" : "Qayta urining! 💪"}
       </h2>
-      <p style={{ color: 'var(--text2)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
+      <p style={{ color: '#6b7280', marginBottom: 28, fontSize: 14, lineHeight: 1.6 }}>
         {passed
-          ? `Tabriklaymiz! Dars muvaffaqiyatli yakunlandi!`
+          ? 'Tabriklaymiz! Dars muvaffaqiyatli yakunlandi!'
           : `Minimal ball: 60%. Sizning ballingiz: ${score}%\nBarcha tablarni ko'rib chiqing!`}
       </p>
 
-      <div style={{ display: 'flex', gap: 16, marginBottom: 32 }}>
-        <div style={{ background: 'var(--card)', borderRadius: 16, padding: '16px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)' }}>
-          <div style={{ fontSize: 28, fontWeight: 900, color: passed ? '#28a745' : '#dc3545' }}>{score}%</div>
-          <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>Natija</div>
+      {/* Score cards */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 32 }}>
+        <div style={{ background: 'white', borderRadius: 16, padding: '16px 20px', border: '1px solid rgba(124,58,237,0.12)' }}>
+          <div style={{ fontSize: 28, fontWeight: 900, color: passed ? '#15803d' : '#dc2626' }}>{score}%</div>
+          <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Natija</div>
         </div>
         {passed && (
-          <div style={{ background: 'var(--card)', borderRadius: 16, padding: '16px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)' }}>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#f59e0b' }}>+{score === 100 ? 30 : 20}</div>
-            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>XP ball</div>
+          <div style={{ background: 'white', borderRadius: 16, padding: '16px 20px', border: '1px solid rgba(124,58,237,0.12)' }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#7c3aed' }}>+{score === 100 ? 30 : 20}</div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>XP ball</div>
           </div>
         )}
-        <div style={{ background: 'var(--card)', borderRadius: 16, padding: '16px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)' }}>
-          <div style={{ fontSize: 28, fontWeight: 900, color: 'var(--accent2)' }}>{quiz.length}</div>
-          <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>Savol</div>
+        <div style={{ background: 'white', borderRadius: 16, padding: '16px 20px', border: '1px solid rgba(124,58,237,0.12)' }}>
+          <div style={{ fontSize: 28, fontWeight: 900, color: '#1e1b4b' }}>{quiz.length}</div>
+          <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Savol</div>
         </div>
       </div>
 
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {passed ? (
-          <button className="btn btn-success" onClick={() => navigate(-1)}
-            style={{ background: 'linear-gradient(135deg, #28a745, #20c997)' }}>
-            🚀 Davom etish →
-          </button>
+          <button onClick={() => navigate(-1)} style={{
+            padding: '14px', borderRadius: 14,
+            background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+            border: 'none', color: 'white', fontSize: 14, fontWeight: 800, cursor: 'pointer'
+          }}>🚀 Davom etish →</button>
         ) : (
-          <button className="btn btn-secondary" onClick={() => {
+          <button onClick={() => {
             setPhase('content'); setCurrentQ(0); setSelected(null)
             setRevealed(false); setScore(0); scoreRef.current = 0; setActiveTab('intro')
-          }}>
-            🔄 Qayta urinish
-          </button>
+          }} style={{
+            padding: '14px', borderRadius: 14,
+            background: '#f5f3ff', border: '1.5px solid rgba(124,58,237,0.3)',
+            color: '#7c3aed', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+          }}>🔄 Qayta urinish</button>
         )}
-        <button className="btn btn-ghost" onClick={() => navigate('/')}>🏠 Bosh sahifaga</button>
+        <button onClick={() => navigate('/')} style={{
+          padding: '14px', borderRadius: 14,
+          background: 'white', border: '0.5px solid rgba(124,58,237,0.15)',
+          color: '#9ca3af', fontSize: 14, fontWeight: 600, cursor: 'pointer'
+        }}>🏠 Bosh sahifaga</button>
       </div>
     </div>
   )
