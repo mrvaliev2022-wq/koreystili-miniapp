@@ -416,7 +416,7 @@ export default function Lesson() {
 
         {/* TAB CARDS (stacked style) */}
         <div style={{ padding: '10px 14px 6px', background: 'white', flexShrink: 0 }}>
-          <div style={{ display: 'flex', overflowX: 'auto', gap: 8, paddingBottom: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
             {TABS.map((t) => {
               const isActive = activeTab === t.key
               const isDone   = doneTabs.has(t.key)
@@ -426,7 +426,7 @@ export default function Lesson() {
                   onClick={() => handleTabClick(t.key)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '8px 13px', borderRadius: 20, flexShrink: 0,
+                    padding: '6px 8px', borderRadius: 12, flexShrink: 0,
                     background: isActive
                       ? 'linear-gradient(135deg, #7c3aed, #a855f7)'
                       : isDone ? '#f0fdf4' : '#f5f3ff',
@@ -976,3 +976,4 @@ export default function Lesson() {
     </div>
   )
 }
+
