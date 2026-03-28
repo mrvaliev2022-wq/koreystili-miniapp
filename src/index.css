@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 :root {
-  --bg: #fff5f8;
+  --bg: #f5f3ff;
   --bg2: #ffffff;
-  --bg3: #fce4ec;
+  --bg3: #ede9fe;
   --card: #ffffff;
-  --border: rgba(244,114,182,0.15);
-  --border2: rgba(244,114,182,0.25);
-  --text: #831843;
-  --text2: rgba(131,24,67,0.65);
-  --text3: rgba(131,24,67,0.38);
-  --accent: #f472b6;
-  --accent2: #ec4899;
-  --accent-bg: rgba(244,114,182,0.12);
+  --border: rgba(124,58,237,0.12);
+  --border2: rgba(124,58,237,0.2);
+  --text: #1e1b4b;
+  --text2: #374151;
+  --text3: #9ca3af;
+  --accent: #7c3aed;
+  --accent2: #7c3aed;
+  --accent-bg: #ede9fe;
   --green: #10b981;
   --green-bg: rgba(16,185,129,0.12);
   --amber: #f59e0b;
@@ -35,7 +35,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); font
 .page { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 0 90px; }
 .page::-webkit-scrollbar { display: none; }
 
-.card { background: var(--card); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 16px; box-shadow: 0 2px 16px rgba(244,114,182,0.08); }
+.card { background: var(--card); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 16px; box-shadow: 0 2px 16px rgba(124,58,237,0.06); }
 .card-sm { background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 12px; }
 
 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 20px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font); font-size: 15px; font-weight: 700; transition: transform 0.15s, opacity 0.15s; user-select: none; }
@@ -44,7 +44,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); font
 .btn-secondary { background: var(--bg3); color: var(--accent2); border: 1px solid var(--border2); }
 .btn-success { background: var(--green); color: #fff; }
 .btn-danger { background: var(--red); color: #fff; }
-.btn-ghost { background: transparent; color: var(--accent2); border: 1.5px solid rgba(244,114,182,0.4); }
+.btn-ghost { background: transparent; color: var(--accent2); border: 1.5px solid rgba(124,58,237,0.3); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 .progress-track { height: 8px; background: var(--bg3); border-radius: 100px; overflow: hidden; }
@@ -89,7 +89,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); font
 .divider { height: 0.5px; background: var(--border2); margin: 16px 0; }
 
 .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.stat-cell { background: #fff; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 10px 6px; text-align: center; box-shadow: 0 2px 8px rgba(244,114,182,0.08); }
+.stat-cell { background: #fff; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 10px 6px; text-align: center; box-shadow: 0 2px 8px rgba(124,58,237,0.06); }
 .stat-val { font-size: 20px; font-weight: 800; color: var(--accent2); }
 .stat-lbl { font-size: 11px; color: var(--text3); font-weight: 600; margin-top: 2px; }
 
@@ -102,3 +102,4 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); font
 
 @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
 .float { animation: float 3s ease-in-out infinite; }
+
