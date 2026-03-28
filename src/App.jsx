@@ -38,7 +38,7 @@ function AppInner() {
     }
   }, [])
 
-  if (!isSubscribed) return <ChannelGate />
+  // ChannelGate disabled
   if (!onboardingDone) return <Onboarding />
 
   return (
