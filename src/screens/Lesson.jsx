@@ -416,7 +416,7 @@ export default function Lesson() {
 
         {/* TAB CARDS (stacked style) */}
         <div style={{ padding: '10px 14px 6px', background: 'white', flexShrink: 0 }}>
-          <div style={{ display: 'flex', overflowX: 'auto', gap: 8, paddingBottom: 4, scrollbarWidth: 'none' }}>
+          <div style={{ display: 'flex', overflowX: 'auto', gap: 8, paddingBottom: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none' }}>
             {TABS.map((t) => {
               const isActive = activeTab === t.key
               const isDone   = doneTabs.has(t.key)
