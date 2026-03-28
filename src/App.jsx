@@ -10,7 +10,7 @@ import { Leaderboard, Profile, Review, Referral } from './screens/OtherScreens'
 import Premium from './screens/Premium'
 import BottomNav from './components/BottomNav'
 
-const SHOW_NAV = ['/', '/path', '/leaderboard', '/profile']
+const SHOW_NAV = ['/', '/path', '/learning-path', '/leaderboard', '/profile']
 
 function AppInner() {
   const { isSubscribed, onboardingDone, activeTrack, setActiveTrack, setUser, user } = useStore()
