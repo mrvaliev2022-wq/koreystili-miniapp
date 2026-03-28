@@ -202,7 +202,7 @@ export default function Home() {
       minHeight: '100dvh',
       background: '#f5f3ff',
       fontFamily: "'Segoe UI', system-ui, sans-serif",
-      paddingBottom: 80,
+      paddingBottom: 90,
     }}>
 
       {/* ── HEADER ── */}
@@ -484,4 +484,7 @@ export default function Home() {
         </div>
 
       </div>
+
+    </div>
+  )
 }
