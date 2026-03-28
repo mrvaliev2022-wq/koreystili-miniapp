@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useStore, getTelegramUser } from './store'
-import ChannelGate from './screens/ChannelGate'
 import Onboarding from './screens/Onboarding'
 import Home from './screens/Home'
 import LearningPath from './screens/LearningPath'
@@ -14,16 +13,14 @@ import BottomNav from './components/BottomNav'
 const SHOW_NAV = ['/', '/path', '/leaderboard', '/profile']
 
 function AppInner() {
-  const { isSubscribed, onboardingDone, setUser, user } = useStore()
+  const { isSubscribed, onboardingDone, activeTrack, setActiveTrack, setUser, user } = useStore()
   const location = useLocation()
   const showNav = SHOW_NAV.includes(location.pathname)
 
-  // Pull Telegram user on first mount + register with backend
   useEffect(() => {
+    // Pull Telegram user on first mount + register with backend
     const tgUser = getTelegramUser()
     if (tgUser.name && !user.name) setUser(tgUser)
-
-    // Register with backend (non-blocking)
     if (tgUser.id) {
       import('./api.js').then(({ registerUser }) => {
         const refCode = new URLSearchParams(window.location.search).get('start') ||
@@ -33,8 +30,13 @@ function AppInner() {
           first_name: tgUser.name.split(' ')[0],
           last_name: tgUser.name.split(' ').slice(1).join(' ') || undefined,
           referral_code: refCode || undefined,
-        }).catch(() => {}) // silent fail — local state still works
+        }).catch(() => {})
       }).catch(() => {})
+    }
+
+    // ✅ FIX: agar onboardingDone=true lekin activeTrack=null bo'lsa — tuzat
+    if (onboardingDone && !activeTrack) {
+      setActiveTrack('topik')
     }
   }, [])
 
@@ -46,6 +48,7 @@ function AppInner() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/path" element={<LearningPath />} />
+        <Route path="/learning-path" element={<LearningPath />} />
         <Route path="/lesson/:lessonId" element={<Lesson />} />
         <Route path="/test/:testId" element={<TestScreen />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
