@@ -202,7 +202,7 @@ export default function Home() {
       minHeight: '100dvh',
       background: '#f5f3ff',
       fontFamily: "'Segoe UI', system-ui, sans-serif",
-      paddingBottom: 90,
+      paddingBottom: 80,
     }}>
 
       {/* ── HEADER ── */}
@@ -484,47 +484,4 @@ export default function Home() {
         </div>
 
       </div>
-
-      {/* ── BOTTOM NAV ── */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: 430,
-        background: 'white',
-        borderTop: '0.5px solid rgba(124,58,237,0.1)',
-        height: 68,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-        padding: '0 8px', zIndex: 100
-      }}>
-        {[
-          { icon: '🏠', label: 'Bosh sahifa', path: '/',             active: true  },
-          { icon: '📚', label: "Yo'l",        path: '/learning-path', active: false },
-          null,
-          { icon: '🏆', label: 'Reyting',     path: '/leaderboard',  active: false },
-          { icon: '👤', label: 'Profil',       path: '/profile',      active: false },
-        ].map((item, i) => {
-          if (item === null) return (
-            <div key="fab" onClick={() => navigate(`/lesson/${findNextLesson()}`)} style={{
-              width: 52, height: 52, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 22, color: 'white', fontWeight: 900,
-              marginTop: -20, cursor: 'pointer',
-              boxShadow: '0 4px 16px rgba(124,58,237,0.4)', flexShrink: 0
-            }}>▶</div>
-          )
-          return (
-            <div key={i} onClick={() => navigate(item.path)} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: 3, cursor: 'pointer', flex: 1
-            }}>
-              <div style={{ fontSize: 20 }}>{item.icon}</div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: item.active ? '#7c3aed' : '#9ca3af' }}>
-                {item.label}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
 }
