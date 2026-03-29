@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useStore, TOPIK_LEVELS, EPS_LESSONS } from '../store'
+import { useStore, TOPIK_LEVELS, EPS_LESSONS, ALPHA_LESSONS } from '../store'
 import { ChevronLeft, Crown } from 'lucide-react'
 
 const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-production.up.railway.app/api'
@@ -376,3 +376,4 @@ function LessonRow({ lesson, status, number, needsPremium, dailyLimitReached, on
     </div>
   )
 }
+
