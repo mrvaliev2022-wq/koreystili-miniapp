@@ -51,10 +51,9 @@ const initialTopikProgress = {
   }])),
 }
 
-// ── Initial EPS progress (alpha + eps darslar) ────────────────────
+// ── Initial EPS progress (alpha 7ta + eps 30ta) ───────────────────
 const initialEpsProgress = {
   lessonProgress: {
-    // Alphabet darslari (7 ta)
     'alpha-1': 'available',
     'alpha-2': 'locked',
     'alpha-3': 'locked',
@@ -62,17 +61,12 @@ const initialEpsProgress = {
     'alpha-5': 'locked',
     'alpha-6': 'locked',
     'alpha-7': 'locked',
-    // EPS-TOPIK darslari (10 ta) — alpha tugagandan keyin ochiladi
-    'eps-1': 'locked',
-    'eps-2': 'locked',
-    'eps-3': 'locked',
-    'eps-4': 'locked',
-    'eps-5': 'locked',
-    'eps-6': 'locked',
-    'eps-7': 'locked',
-    'eps-8': 'locked',
-    'eps-9': 'locked',
-    'eps-10': 'locked',
+    'eps-1':  'locked', 'eps-2':  'locked', 'eps-3':  'locked', 'eps-4':  'locked', 'eps-5':  'locked',
+    'eps-6':  'locked', 'eps-7':  'locked', 'eps-8':  'locked', 'eps-9':  'locked', 'eps-10': 'locked',
+    'eps-11': 'locked', 'eps-12': 'locked', 'eps-13': 'locked', 'eps-14': 'locked', 'eps-15': 'locked',
+    'eps-16': 'locked', 'eps-17': 'locked', 'eps-18': 'locked', 'eps-19': 'locked', 'eps-20': 'locked',
+    'eps-21': 'locked', 'eps-22': 'locked', 'eps-23': 'locked', 'eps-24': 'locked', 'eps-25': 'locked',
+    'eps-26': 'locked', 'eps-27': 'locked', 'eps-28': 'locked', 'eps-29': 'locked', 'eps-30': 'locked',
   },
   finalTestStatus: 'locked',
   finalTestScore: null,
@@ -102,10 +96,12 @@ const initialState = {
   referralDays: 0,
 }
 
-// ── EPS lesson order (alpha + eps) ───────────────────────────────
+// ── EPS lesson order (alpha 7ta + eps 30ta) ───────────────────────
 const EPS_ORDER = [
   'alpha-1', 'alpha-2', 'alpha-3', 'alpha-4', 'alpha-5', 'alpha-6', 'alpha-7',
-  'eps-1', 'eps-2', 'eps-3', 'eps-4', 'eps-5', 'eps-6', 'eps-7', 'eps-8', 'eps-9', 'eps-10',
+  'eps-1',  'eps-2',  'eps-3',  'eps-4',  'eps-5',  'eps-6',  'eps-7',  'eps-8',  'eps-9',  'eps-10',
+  'eps-11', 'eps-12', 'eps-13', 'eps-14', 'eps-15', 'eps-16', 'eps-17', 'eps-18', 'eps-19', 'eps-20',
+  'eps-21', 'eps-22', 'eps-23', 'eps-24', 'eps-25', 'eps-26', 'eps-27', 'eps-28', 'eps-29', 'eps-30',
 ]
 
 export const useStore = create(
@@ -113,7 +109,6 @@ export const useStore = create(
     (set, get) => ({
       ...initialState,
 
-      // ── Setup ──
       setUser: (user) => set({ user }),
       setSubscribed: () => set({ isSubscribed: true }),
       completeOnboarding: (track) => {
@@ -122,7 +117,6 @@ export const useStore = create(
       },
       setActiveTrack: (track) => set({ activeTrack: track }),
 
-      // ── Premium aktivlashtirish ──
       activatePremium: (days = -1) => {
         const s = get()
         let expiry = null
@@ -136,35 +130,21 @@ export const useStore = create(
           const current = updatedTopik[lvl]
           const hasProgress = Object.values(current.lessonProgress).some(v => v !== 'locked')
           if (!hasProgress) {
-            updatedTopik[lvl] = {
-              ...current,
-              lessonProgress: makeFirstAvailable(lvl)
-            }
+            updatedTopik[lvl] = { ...current, lessonProgress: makeFirstAvailable(lvl) }
           }
         }
-        set({
-          isPremium: true,
-          premiumExpiry: expiry,
-          topikProgress: updatedTopik
-        })
+        set({ isPremium: true, premiumExpiry: expiry, topikProgress: updatedTopik })
       },
 
-      // ── EPS barcha darslarni unlock (Premium) ──
       unlockEpsForPremium: () => {
         const s = get()
         const hasEpsProgress = Object.values(s.epsProgress.lessonProgress).some(v => v !== 'locked')
         if (!hasEpsProgress) {
           const allAvailable = Object.fromEntries(EPS_ORDER.map(id => [id, 'available']))
-          set({
-            epsProgress: {
-              ...s.epsProgress,
-              lessonProgress: allAvailable
-            }
-          })
+          set({ epsProgress: { ...s.epsProgress, lessonProgress: allAvailable } })
         }
       },
 
-      // ── XP & Streak ──
       addXp: (amount) => {
         const s = get()
         const today = getTodayUzb()
@@ -176,16 +156,9 @@ export const useStore = create(
           const yesterday = getYesterdayUzb()
           newStreak = s.lastActiveDate === yesterday ? s.streak + 1 : 1
         }
-        set({
-          xp: s.xp + amount,
-          weeklyXp: newWeeklyXp + amount,
-          weekStart: newWeekStart,
-          streak: newStreak,
-          lastActiveDate: today,
-        })
+        set({ xp: s.xp + amount, weeklyXp: newWeeklyXp + amount, weekStart: newWeekStart, streak: newStreak, lastActiveDate: today })
       },
 
-      // ── Lesson completion ──
       completeLesson: (lessonId, score, isPerfect) => {
         const s = get()
         const isTopik = lessonId.startsWith('topik')
@@ -218,18 +191,13 @@ export const useStore = create(
           const ep = { ...s.epsProgress }
           const lp = { ...ep.lessonProgress }
           lp[lessonId] = 'done'
-
-          // Keyingi darsni ochish
           const currentIdx = EPS_ORDER.indexOf(lessonId)
           if (currentIdx >= 0 && currentIdx < EPS_ORDER.length - 1) {
             const nextId = EPS_ORDER[currentIdx + 1]
             if (lp[nextId] === 'locked') lp[nextId] = 'available'
           }
-
-          // Barcha eps darslar tugadimi (alpha emas, faqat eps)
           const epsOnly = EPS_ORDER.filter(id => id.startsWith('eps-'))
           const allEpsDone = epsOnly.every(id => lp[id] === 'done')
-
           set({
             epsProgress: {
               ...ep,
@@ -240,7 +208,6 @@ export const useStore = create(
         }
       },
 
-      // ── Level Test ──
       submitTest: (testId, score) => {
         const s = get()
         const passed = score >= 60
@@ -285,7 +252,6 @@ export const useStore = create(
         }
       },
 
-      // ── Referral ──
       addReferral: () => {
         const s = get()
         const newCount = s.referralCount + 1
@@ -294,7 +260,6 @@ export const useStore = create(
         set({ referralCount: newCount, referralDays: newDays })
       },
 
-      // ── Quiz session ──
       startQuiz: (lessonId) => set({ activeQuiz: { lessonId, answers: [], startedAt: Date.now() } }),
       answerQuiz: (answerIndex) => {
         const aq = get().activeQuiz
@@ -302,11 +267,9 @@ export const useStore = create(
         set({ activeQuiz: { ...aq, answers: [...aq.answers, answerIndex] } })
       },
       clearQuiz: () => set({ activeQuiz: null, activeTest: null }),
-
-      // ── Reset ──
       reset: () => set(initialState),
     }),
-    { name: 'korean-app-state-v2' }
+    { name: 'korean-app-state-v3' }
   )
 )
 
@@ -355,7 +318,7 @@ export const TOPIK_LEVELS = Array.from({ length: 6 }, (_, li) => ({
   },
 }))
 
-// ── EPS_LESSONS (alpha + eps) ─────────────────────────────────────
+// ── ALPHA_LESSONS (7 ta) ──────────────────────────────────────────
 export const ALPHA_LESSONS = [
   { id: 'alpha-1', number: 1, title: '🔤 Unlilar 1 | ㅏ ㅓ ㅗ ㅜ ㅡ ㅣ', xp: 10 },
   { id: 'alpha-2', number: 2, title: '🔤 Unlilar 2 | ㅐ ㅔ ㅑ ㅕ ㅛ ㅠ', xp: 10 },
@@ -366,24 +329,43 @@ export const ALPHA_LESSONS = [
   { id: 'alpha-7', number: 7, title: '🔤 Amaliy so\'zlar | EPS-TOPIK uchun', xp: 10 },
 ]
 
-export const EPS_LESSONS = Array.from({ length: 10 }, (_, i) => {
-  const epsTitles = [
-    'Ish joyida salomlashish', 'Ish buyruqlari va ko\'rsatmalar',
-    'Xavfsizlik qoidalari', 'Ish vaqti va navbatchilik',
-    'Maosh va to\'lovlar', 'Kasallik va ta\'til', 'Ish asboblari nomlari',
-    'Zavod va fabrika muhiti', 'Hamkasb bilan muloqot', 'Ish shartnomasi',
-  ]
-  return {
-    id: `eps-${i + 1}`,
-    number: i + 1,
-    title: epsTitles[i],
-    xp: 10,
-  }
-})
+// ── EPS_LESSONS (30 ta) ───────────────────────────────────────────
+export const EPS_LESSONS = [
+  { id: 'eps-1',  number: 1,  title: '👋 O\'zini tanishtirish | 자기소개', xp: 20 },
+  { id: 'eps-2',  number: 2,  title: '🛒 Kundalik buyumlar | 생활용품', xp: 20 },
+  { id: 'eps-3',  number: 3,  title: '📍 Joylashuv va joylar | 위치와 장소', xp: 20 },
+  { id: 'eps-4',  number: 4,  title: '🏃 Harakat va predmetlar | 동작과 사물', xp: 20 },
+  { id: 'eps-5',  number: 5,  title: '📅 Sana va hafta kunlari | 날짜와 요일', xp: 20 },
+  { id: 'eps-6',  number: 6,  title: '⏰ Kunlik faoliyat | 하루 일과', xp: 20 },
+  { id: 'eps-7',  number: 7,  title: '🌤️ Fasllar va ob-havo | 계절과 날씨', xp: 20 },
+  { id: 'eps-8',  number: 8,  title: '👨‍👩‍👧 Oila va do\'stlar | 가족과 친구', xp: 20 },
+  { id: 'eps-9',  number: 9,  title: '🍜 Ovqat buyurtma | 음식 주문', xp: 20 },
+  { id: 'eps-10', number: 10, title: '🛍️ Sotib olish | 물건 구입', xp: 20 },
+  { id: 'eps-11', number: 11, title: '🏠 Uy ishlari | 집안일', xp: 20 },
+  { id: 'eps-12', number: 12, title: '🚌 Jamoat transporti | 대중교통', xp: 20 },
+  { id: 'eps-13', number: 13, title: '🏖️ Dam olish kunlari | 주말 활동', xp: 20 },
+  { id: 'eps-14', number: 14, title: '🗺️ Yo\'l so\'rash | 길 찾기', xp: 20 },
+  { id: 'eps-15', number: 15, title: '👕 Kiyim | 옷차림', xp: 20 },
+  { id: 'eps-16', number: 16, title: '🏠 Uy topish | 집 구하기', xp: 20 },
+  { id: 'eps-17', number: 17, title: '✈️ Ta\'til | 휴가', xp: 20 },
+  { id: 'eps-18', number: 18, title: '🎯 Hobbi | 취미', xp: 20 },
+  { id: 'eps-19', number: 19, title: '🍳 Ovqat tayyorlash | 요리', xp: 20 },
+  { id: 'eps-20', number: 20, title: '📱 Internet va smartfon | 인터넷과 스마트폰', xp: 20 },
+  { id: 'eps-21', number: 21, title: '🏥 Shifoxona | 병원', xp: 20 },
+  { id: 'eps-22', number: 22, title: '💊 Dorixona | 약국', xp: 20 },
+  { id: 'eps-23', number: 23, title: '📮 Pochta | 우체국', xp: 20 },
+  { id: 'eps-24', number: 24, title: '🏦 Bank | 은행', xp: 20 },
+  { id: 'eps-25', number: 25, title: '🏢 Chet ellik ishchilar markazi | 외국인 근로자 지원 기관', xp: 20 },
+  { id: 'eps-26', number: 26, title: '🏠 Koreya yashash va ovqat madaniyati | 주거/음식 문화', xp: 20 },
+  { id: 'eps-27', number: 27, title: '🎉 Koreya bayramlari | 한국의 기념일', xp: 20 },
+  { id: 'eps-28', number: 28, title: '🎊 Koreya an\'anaviy bayramlari | 한국의 명절', xp: 20 },
+  { id: 'eps-29', number: 29, title: '🙇 Koreya odob-qoidalari | 한국의 예절', xp: 20 },
+  { id: 'eps-30', number: 30, title: '🎤 Koreya ommaviy madaniyati | 한국의 대중문화', xp: 20 },
+]
 
 export const EPS_FINAL_TEST = {
   id: 'eps-final',
-  title: 'EPS-TOPIK yakuniy testi',
+  title: 'EPS-TOPIK 1 yakuniy testi',
   passMark: 60,
   questions: [],
 }
