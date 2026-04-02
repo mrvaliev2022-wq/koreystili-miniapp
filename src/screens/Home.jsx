@@ -118,7 +118,7 @@ export default function Home() {
   } = useStore()
 
   const [leaderRank, setLeaderRank] = useState(null)
-  const [totalLessons, setTotalLessons] = useState(60)
+  const [totalLessons, setTotalLessons] = useState(97)
   const [doneLessons, setDoneLessons] = useState(0)
   const [isPremiumBackend, setIsPremiumBackend] = useState(false)
   const [greeting, setGreeting] = useState('Xush kelibsiz')
@@ -186,11 +186,15 @@ export default function Home() {
       return 'topik-1-1'
     } else {
       const lp = epsProgress.lessonProgress || {}
-      for (let n = 1; n <= 10; n++) {
-        const id = `eps-${n}`
+      const allEpsIds = [
+        ...Array.from({ length: 7 }, (_, i) => `alpha-${i + 1}`),
+        ...Array.from({ length: 30 }, (_, i) => `eps-${i + 1}`),
+        ...Array.from({ length: 30 }, (_, i) => `eps2-${i + 11}`),
+      ]
+      for (const id of allEpsIds) {
         if (lp[id] === 'available') return id
       }
-      return 'eps-1'
+      return 'alpha-1'
     }
   }
 

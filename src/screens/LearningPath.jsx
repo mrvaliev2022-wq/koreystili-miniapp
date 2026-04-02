@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useStore, TOPIK_LEVELS, EPS_LESSONS, ALPHA_LESSONS } from '../store'
+import { useStore, TOPIK_LEVELS, EPS_LESSONS, ALPHA_LESSONS, EPS_LESSONS_2 } from '../store'
 import { ChevronLeft, Crown } from 'lucide-react'
 
 const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-production.up.railway.app/api'
@@ -167,7 +167,25 @@ export default function LearningPath() {
                 onClick={() => handleLessonClick(lesson, status, lessonNumber)} />
             )
           })}
-
+{/* EPS-2 BO'LIMI */}
+<div style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)', borderRadius: 14, padding: '10px 14px', marginBottom: 8, marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ color: 'white', fontSize: 13, fontWeight: 800 }}>🏭 EPS-TOPIK 2 Darslari</div>
+          <div style={{ background: 'rgba(255,255,255,0.2)', color: 'white', fontSize: 12, fontWeight: 700, padding: '2px 9px', borderRadius: 12 }}>
+            {EPS_LESSONS_2.filter(l => lp[l.id] === 'done').length}/{EPS_LESSONS_2.length}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0 2px', marginBottom: 16 }}>
+          {EPS_LESSONS_2.map((lesson, i) => {
+            const lessonNumber = i + 1
+            const status = lp[lesson.id] || 'locked'
+            const needsPremium = lessonNumber > FREE_LESSONS && !isPremium
+            return (
+              <LessonRow key={lesson.id} lesson={lesson} status={status} number={lesson.number}
+                needsPremium={needsPremium} dailyLimitReached={isPremium && !dailyInfo.can_study}
+                onClick={() => handleLessonClick(lesson, status, lessonNumber)} />
+            )
+          })}
+        </div>
           {/* Yakuniy test */}
           <div onClick={() => epsProgress.finalTestStatus === 'available' && navigate('/test/eps-final')} style={{
             background: epsProgress.finalTestStatus === 'done' ? '#dcfce7' : epsProgress.finalTestStatus === 'available' ? 'linear-gradient(135deg, #7c3aed, #a855f7)' : 'white',

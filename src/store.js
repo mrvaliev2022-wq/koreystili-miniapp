@@ -67,6 +67,12 @@ const initialEpsProgress = {
     'eps-16': 'locked', 'eps-17': 'locked', 'eps-18': 'locked', 'eps-19': 'locked', 'eps-20': 'locked',
     'eps-21': 'locked', 'eps-22': 'locked', 'eps-23': 'locked', 'eps-24': 'locked', 'eps-25': 'locked',
     'eps-26': 'locked', 'eps-27': 'locked', 'eps-28': 'locked', 'eps-29': 'locked', 'eps-30': 'locked',
+    'eps2-11': 'locked', 'eps2-12': 'locked', 'eps2-13': 'locked', 'eps2-14': 'locked', 'eps2-15': 'locked',
+    'eps2-16': 'locked', 'eps2-17': 'locked', 'eps2-18': 'locked', 'eps2-19': 'locked', 'eps2-20': 'locked',
+    'eps2-21': 'locked', 'eps2-22': 'locked', 'eps2-23': 'locked', 'eps2-24': 'locked', 'eps2-25': 'locked',
+    'eps2-26': 'locked', 'eps2-27': 'locked', 'eps2-28': 'locked', 'eps2-29': 'locked', 'eps2-30': 'locked',
+    'eps2-31': 'locked', 'eps2-32': 'locked', 'eps2-33': 'locked', 'eps2-34': 'locked', 'eps2-35': 'locked',
+    'eps2-36': 'locked', 'eps2-37': 'locked', 'eps2-38': 'locked', 'eps2-39': 'locked', 'eps2-40': 'locked',
   },
   finalTestStatus: 'locked',
   finalTestScore: null,
@@ -102,6 +108,9 @@ const EPS_ORDER = [
   'eps-1',  'eps-2',  'eps-3',  'eps-4',  'eps-5',  'eps-6',  'eps-7',  'eps-8',  'eps-9',  'eps-10',
   'eps-11', 'eps-12', 'eps-13', 'eps-14', 'eps-15', 'eps-16', 'eps-17', 'eps-18', 'eps-19', 'eps-20',
   'eps-21', 'eps-22', 'eps-23', 'eps-24', 'eps-25', 'eps-26', 'eps-27', 'eps-28', 'eps-29', 'eps-30',
+  'eps2-11', 'eps2-12', 'eps2-13', 'eps2-14', 'eps2-15', 'eps2-16', 'eps2-17', 'eps2-18', 'eps2-19', 'eps2-20',
+  'eps2-21', 'eps2-22', 'eps2-23', 'eps2-24', 'eps2-25', 'eps2-26', 'eps2-27', 'eps2-28', 'eps2-29', 'eps2-30',
+  'eps2-31', 'eps2-32', 'eps2-33', 'eps2-34', 'eps2-35', 'eps2-36', 'eps2-37', 'eps2-38', 'eps2-39', 'eps2-40',
 ]
 
 export const useStore = create(
@@ -138,11 +147,8 @@ export const useStore = create(
 
       unlockEpsForPremium: () => {
         const s = get()
-        const hasEpsProgress = Object.values(s.epsProgress.lessonProgress).some(v => v !== 'locked')
-        if (!hasEpsProgress) {
-          const allAvailable = Object.fromEntries(EPS_ORDER.map(id => [id, 'available']))
-          set({ epsProgress: { ...s.epsProgress, lessonProgress: allAvailable } })
-        }
+        const allAvailable = Object.fromEntries(EPS_ORDER.map(id => [id, 'available']))
+        set({ epsProgress: { ...s.epsProgress, lessonProgress: allAvailable } })
       },
 
       addXp: (amount) => {
@@ -162,7 +168,7 @@ export const useStore = create(
       completeLesson: (lessonId, score, isPerfect) => {
         const s = get()
         const isTopik = lessonId.startsWith('topik')
-        const isEps = lessonId.startsWith('eps-') || lessonId.startsWith('alpha-')
+        const isEps = lessonId.startsWith('eps-') || lessonId.startsWith('alpha-') || lessonId.startsWith('eps2-')
         let xpEarned = 20
         if (isPerfect) xpEarned += 10
         get().addXp(xpEarned)
@@ -362,7 +368,38 @@ export const EPS_LESSONS = [
   { id: 'eps-29', number: 29, title: '🙇 Koreya odob-qoidalari | 한국의 예절', xp: 20 },
   { id: 'eps-30', number: 30, title: '🎤 Koreya ommaviy madaniyati | 한국의 대중문화', xp: 20 },
 ]
-
+export const EPS_LESSONS_2 = [
+  { id: 'eps2-11', number: 31, title: "🧵 To'qimachilik | 섬유 제조", xp: 25 },
+  { id: 'eps2-12', number: 32, title: "🪑 Mebel ishlab chiqarish | 가구 제작", xp: 25 },
+  { id: 'eps2-13', number: 33, title: "🏗️ Qurilish ishlari | 건축 시공", xp: 25 },
+  { id: 'eps2-14', number: 34, title: "🌊 Infratuzilma qurilishi | 토목 시공", xp: 25 },
+  { id: 'eps2-15', number: 35, title: "🌾 Qishloq xo'jaligi | 농작물 재배", xp: 25 },
+  { id: 'eps2-16', number: 36, title: "🐄 Chorvachilik | 축산", xp: 25 },
+  { id: 'eps2-17', number: 37, title: "🐟 Baliqchilik | 어업", xp: 25 },
+  { id: 'eps2-18', number: 38, title: "🌿 Issiqxona | 시설 원예", xp: 25 },
+  { id: 'eps2-19', number: 39, title: "🪵 Yog'och ishlash | 목재 가공", xp: 25 },
+  { id: 'eps2-20', number: 40, title: "♻️ Chiqindi qayta ishlash | 재활용", xp: 25 },
+  { id: 'eps2-21', number: 41, title: "🧵 To'qimachilik | 섬유 제조", xp: 25 },
+  { id: 'eps2-22', number: 42, title: "🪑 Mebel ishlab chiqarish | 가구 제작", xp: 25 },
+  { id: 'eps2-23', number: 43, title: "🏗️ Qurilish ishlari | 건축 시공", xp: 25 },
+  { id: 'eps2-24', number: 44, title: "🌊 Infratuzilma qurilishi | 토목 시공", xp: 25 },
+  { id: 'eps2-25', number: 45, title: "🌾 Qishloq xo'jaligi | 농작물 재배", xp: 25 },
+  { id: 'eps2-26', number: 46, title: "🐄 Chorvachilik | 축산", xp: 25 },
+  { id: 'eps2-27', number: 47, title: "🐟 Baliqchilik | 어업", xp: 25 },
+  { id: 'eps2-28', number: 48, title: "🌿 Issiqxona | 시설 원예", xp: 25 },
+  { id: 'eps2-29', number: 49, title: "🪵 Yog'och ishlash | 목재 가공", xp: 25 },
+  { id: 'eps2-30', number: 50, title: "♻️ Chiqindi qayta ishlash | 재활용", xp: 25 },
+  { id: 'eps2-31', number: 51, title: "🏨 Mehmonxona xizmati | 숙박 서비스", xp: 25 },
+  { id: 'eps2-32', number: 52, title: "🍳 Ovqat tayyorlash | 음식 조리", xp: 25 },
+  { id: 'eps2-33', number: 53, title: "⚠️ Xavfsizlik belgilari | 산업 안전 및 보건 표지", xp: 25 },
+  { id: 'eps2-34', number: 54, title: "🦺 Xavfsizlik qoidalari | 산업 안전 및 보건 수칙", xp: 25 },
+  { id: 'eps2-35', number: 55, title: "🧤 Xavfsizlik jihozlari | 산업 안전 및 위생 장비", xp: 25 },
+  { id: 'eps2-36', number: 56, title: "🏥 Mehnat shikastlanishi | 산업 재해", xp: 25 },
+  { id: 'eps2-37', number: 57, title: "📋 Mehnat shartnomasi | 근로 계약", xp: 25 },
+  { id: 'eps2-38', number: 58, title: "💰 Ish haqi | 임금", xp: 25 },
+  { id: 'eps2-39', number: 59, title: "🏢 Ish joyi huquqlari | 근로자 권리", xp: 25 },
+  { id: 'eps2-40', number: 60, title: "🎓 Malaka oshirish | 직업 훈련", xp: 25 },
+]
 export const EPS_FINAL_TEST = {
   id: 'eps-final',
   title: 'EPS-TOPIK 1 yakuniy testi',
