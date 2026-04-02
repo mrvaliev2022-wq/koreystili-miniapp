@@ -39,10 +39,43 @@ export async function loadProgress() {
 }
 
 export async function submitLessonComplete(lessonId, score, isPerfect, track) {
-  return apiFetch('/progress/lesson', {
+  const result = await apiFetch('/progress/lesson', {
     method: 'POST',
     body: { lesson_id: lessonId, score, is_perfect: isPerfect, track },
   })
+  // Streak checkin
+  const userId = getTgUserId()
+  if (userId) {
+    apiFetch('/streak/checkin', {
+      method: 'POST',
+      body: { user_id: userId, xp_earned: isPerfect ? 30 : 20 },
+    }).catch(() => {})
+  }
+  return result
+}
+
+export async function streakCheckin(xpEarned = 20) {
+  const userId = getTgUserId()
+  if (!userId) return null
+  return apiFetch('/streak/checkin', {
+    method: 'POST',
+    body: { user_id: userId, xp_earned: xpEarned },
+  }).catch(() => null)
+}
+
+export async function streakInfo() {
+  const userId = getTgUserId()
+  if (!userId) return null
+  return apiFetch(`/streak/info?user_id=${userId}`).catch(() => null)
+}
+
+export async function streakFreeze() {
+  const userId = getTgUserId()
+  if (!userId) return null
+  return apiFetch('/streak/freeze', {
+    method: 'POST',
+    body: { user_id: userId },
+  }).catch(() => null)
 }
 
 export async function submitTestResult(testId, score, track) {
