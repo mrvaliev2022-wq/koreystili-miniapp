@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore, getTelegramUser, initTelegramApp } from '../store'
-
+import { LeaderboardMini } from './LeaderboardMini'
+// JSX ichida:
+<LeaderboardMini xp={xp} userId={userId} />
 const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-production.up.railway.app/api'
 
 function getTgUserId() {

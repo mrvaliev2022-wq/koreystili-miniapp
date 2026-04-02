@@ -9,7 +9,9 @@ import TestScreen from './screens/TestScreen'
 import { Leaderboard, Profile, Review, Referral } from './screens/OtherScreens'
 import Premium from './screens/Premium'
 import BottomNav from './components/BottomNav'
-
+import Leaderboard from './screens/Leaderboard'
+// Routes ichiga:
+<Route path="/leaderboard" element={<Leaderboard />} />
 const SHOW_NAV = ['/', '/path', '/learning-path', '/leaderboard', '/profile']
 
 function AppInner() {
