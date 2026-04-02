@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useStore, TOPIK_LEVELS, EPS_LESSONS, ALPHA_LESSONS, EPS_LESSONS_2 } from '../store'
+import { useStore, TOPIK_LEVELS, EPS_LESSONS, ALPHA_LESSONS, EPS_LESSONS_2, TOPIK5_LESSONS } from '../store'
 import { ChevronLeft, Crown } from 'lucide-react'
 
 const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-production.up.railway.app/api'
@@ -48,7 +48,66 @@ export default function LearningPath() {
 
   const renderTopik = () => {
     const levels = levelFilter ? TOPIK_LEVELS.filter(l => l.id === levelFilter) : TOPIK_LEVELS
+
+    // TOPIK 5 ni alohida ko'rsatamiz
+    const renderTopik5Section = () => {
+      const lp = topikProgress[5]
+      const doneLessons = Object.values(lp.lessonProgress).filter(s => s === 'done').length
+      const pct = Math.round((doneLessons / 10) * 100)
+      return (
+        <div key="topik-5-section" style={{ marginBottom: 20 }}>
+          <div style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)', borderRadius: 18, padding: '14px 16px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div>
+                <div style={{ color: 'white', fontSize: 15, fontWeight: 900 }}>5-daraja — TOPIK II</div>
+                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>Ilg'or • Jamiyat, Ekologiya, Texnologiya...</div>
+              </div>
+              <div style={{ background: '#a3e635', color: '#1a2e05', fontSize: 13, fontWeight: 900, padding: '4px 12px', borderRadius: 20 }}>
+                {doneLessons}/10
+              </div>
+            </div>
+            <div style={{ height: 5, background: 'rgba(255,255,255,0.2)', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ height: '100%', background: '#a3e635', width: `${pct}%`, borderRadius: 3, transition: 'width 0.5s' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0 2px' }}>
+            {TOPIK5_LESSONS.map((lesson, i) => {
+              const lessonNumber = i + 1
+              const status = lp.lessonProgress[lesson.id] || 'locked'
+              const needsPremium = lessonNumber > FREE_LESSONS && !isPremium
+              return (
+                <LessonRow key={lesson.id} lesson={lesson} status={status} number={lessonNumber}
+                  needsPremium={needsPremium} dailyLimitReached={isPremium && !dailyInfo.can_study}
+                  onClick={() => handleLessonClick(lesson, status, lessonNumber)} />
+              )
+            })}
+            <div onClick={() => lp.testStatus === 'available' && navigate('/test/topik-test-5')} style={{
+              background: lp.testStatus === 'done' ? '#dcfce7' : lp.testStatus === 'available' ? 'linear-gradient(135deg, #7c3aed, #a855f7)' : 'white',
+              border: lp.testStatus === 'done' ? '1px solid rgba(21,128,61,0.3)' : lp.testStatus === 'available' ? 'none' : '0.5px solid rgba(124,58,237,0.12)',
+              borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
+              cursor: lp.testStatus === 'available' ? 'pointer' : 'default',
+              opacity: lp.testStatus === 'locked' ? 0.4 : 1, marginTop: 2
+            }}>
+              <div style={{ fontSize: 22 }}>{lp.testStatus === 'done' ? '🏅' : lp.testStatus === 'available' ? '📝' : '🔒'}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 800, fontSize: 14, color: lp.testStatus === 'available' ? 'white' : lp.testStatus === 'done' ? '#15803d' : '#1e1b4b' }}>
+                  5-daraja testi
+                </div>
+                <div style={{ fontSize: 12, marginTop: 2, color: lp.testStatus === 'available' ? 'rgba(255,255,255,0.7)' : '#9ca3af' }}>
+                  {lp.testStatus === 'done' ? `Natija: ${lp.testScore}%` : lp.testStatus === 'available' ? 'Testga tayyor!' : '10 ta darsni bajaring'}
+                </div>
+              </div>
+              {lp.testStatus === 'available' && <div style={{ fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,0.85)' }}>Boshlash →</div>}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     return levels.map(level => {
+      // TOPIK 5 ni alohida render qilamiz
+      if (level.id === 5) return renderTopik5Section()
+
       const lp = topikProgress[level.id]
       const doneLessons = Object.values(lp.lessonProgress).filter(s => s === 'done').length
       const pct = Math.round((doneLessons / 10) * 100)

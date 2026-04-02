@@ -43,12 +43,24 @@ const initialTopikProgress = {
     lessonProgress: makeFirstAvailable(1),
     testStatus: 'locked', testScore: null, testAttempts: [],
   },
-  ...Object.fromEntries(Array.from({ length: 5 }, (_, li) => [li + 2, {
+  ...Object.fromEntries(Array.from({ length: 4 }, (_, li) => [li + 2, {
     lessonProgress: Object.fromEntries(
       Array.from({ length: 10 }, (_, i) => [`topik-${li + 2}-${i + 1}`, 'locked'])
     ),
     testStatus: 'locked', testScore: null, testAttempts: [],
   }])),
+  5: {
+    lessonProgress: Object.fromEntries(
+      Array.from({ length: 10 }, (_, i) => [`topik-5-${i + 1}`, 'locked'])
+    ),
+    testStatus: 'locked', testScore: null, testAttempts: [],
+  },
+  6: {
+    lessonProgress: Object.fromEntries(
+      Array.from({ length: 10 }, (_, i) => [`topik-6-${i + 1}`, 'locked'])
+    ),
+    testStatus: 'locked', testScore: null, testAttempts: [],
+  },
 }
 
 // ── Initial EPS progress (alpha 7ta + eps 30ta) ───────────────────
@@ -406,3 +418,17 @@ export const EPS_FINAL_TEST = {
   passMark: 60,
   questions: [],
 }
+
+// ── TOPIK 5 LESSONS (10 ta) ───────────────────────────────────────
+export const TOPIK5_LESSONS = [
+  { id: 'topik-5-1',  number: 1,  title: '🗣️ Jamiyat va Fikr Bildirish | 사회와 의견 표현', xp: 40 },
+  { id: 'topik-5-2',  number: 2,  title: '🌿 Atrof-Muhit va Ekologiya | 환경과 생태계', xp: 40 },
+  { id: 'topik-5-3',  number: 3,  title: '💻 Texnologiya va Raqamli Dunyo | 기술과 디지털 세계', xp: 40 },
+  { id: 'topik-5-4',  number: 4,  title: "📚 Ta'lim va Shaxsiy Rivojlanish | 교육과 자기계발", xp: 40 },
+  { id: 'topik-5-5',  number: 5,  title: "🏥 Sog'liq va Tibbiyot | 건강과 의료", xp: 40 },
+  { id: 'topik-5-6',  number: 6,  title: '💰 Iqtisodiyot va Moliyaviy Savodxonlik | 경제와 재무 지식', xp: 40 },
+  { id: 'topik-5-7',  number: 7,  title: '🎭 Madaniyat va Jamiyat Qadriyatlari | 문화와 사회적 가치', xp: 40 },
+  { id: 'topik-5-8',  number: 8,  title: '💼 Mehnat va Ish Munosabatlari | 노동과 직장 문화', xp: 40 },
+  { id: 'topik-5-9',  number: 9,  title: '🏙️ Shahar va Turmush Sharoiti | 도시와 생활 환경', xp: 40 },
+  { id: 'topik-5-10', number: 10, title: '🏆 TOPIK 5 Yakuniy Takrorlash | TOPIK 5 종합 정리', xp: 50 },
+]
