@@ -258,16 +258,32 @@ export default function Lesson() {
   const contentRef = useRef(null)
   const { speakingId, speak, speakAll, stop } = useSpeaker()
 
-  // Load
+  // Load — userId ni kutib olamiz (Telegram WebApp sekin yuklanishi mumkin)
   useEffect(() => {
-    Promise.all([
-      apiFetch(`/lessons/${lessonId}`),
-      apiFetch(`/lessons/${lessonId}/quiz`)
-    ]).then(([lessonData, quizData]) => {
-      setLesson(lessonData)
-      setQuiz(Array.isArray(quizData) ? quizData : [])
-      setLoading(false)
-    }).catch(() => setLoading(false))
+    let attempts = 0
+    const maxAttempts = 8
+
+    const tryLoad = () => {
+      const uid = getTgUserId()
+      if (!uid && attempts < maxAttempts) {
+        attempts++
+        setTimeout(tryLoad, 500)
+        return
+      }
+      Promise.all([
+        apiFetch(`/lessons/${lessonId}`),
+        apiFetch(`/lessons/${lessonId}/quiz`)
+      ]).then(([lessonData, quizData]) => {
+        setLesson(lessonData)
+        setQuiz(Array.isArray(quizData) ? quizData : [])
+        setLoading(false)
+      }).catch((err) => {
+        console.error('Lesson load error:', err)
+        setLoading(false)
+      })
+    }
+
+    setTimeout(tryLoad, 400)
   }, [lessonId])
 
   useEffect(() => { stop() }, [activeTab])
