@@ -280,17 +280,51 @@ export default function Lesson() {
         apiFetch(`/lessons/${lessonId}`),
         apiFetch(`/lessons/${lessonId}/quiz`)
       ]).then(([lessonData, quizData]) => {
-        setLesson(lessonData)
-        setQuiz(Array.isArray(quizData) ? quizData : [])
-        setLoading(false)
+        if (lessonData && lessonData.id) {
+          setLesson(lessonData)
+          setQuiz(Array.isArray(quizData) ? quizData : [])
+          setLoading(false)
+        } else {
+          // Ma'lumot bo'sh keldi — retry
+          console.warn('Lesson data empty, retrying...')
+          setTimeout(tryLoad, 1200)
+        }
       }).catch((err) => {
         console.error('Lesson error:', err)
-        setLoading(false)
+        // Retry: 2 sekunddan keyin qayta urinib ko'r
+        setTimeout(() => {
+          apiFetch(`/lessons/${lessonId}`)
+            .then(lessonData => {
+              if (lessonData && lessonData.id) {
+                setLesson(lessonData)
+                apiFetch(`/lessons/${lessonId}/quiz`)
+                  .then(q => setQuiz(Array.isArray(q) ? q : []))
+                  .catch(() => {})
+                setLoading(false)
+              } else {
+                setLoading(false)
+              }
+            })
+            .catch(() => setLoading(false))
+        }, 2000)
       })
     }
 
-    // Telegram WebApp yuklanishini kutamiz
-    setTimeout(tryLoad, 1000)
+    // Telegram WebApp ready bo'lishini kutamiz + retry
+    const tg = window.Telegram?.WebApp
+    if (tg && !tg.isExpanded) {
+      try { tg.expand() } catch {}
+    }
+
+    // Darhol urinib ko'r
+    tryLoad()
+
+    // Agar 1 sekundda yuklanmasa (yangi user / slow init) — qayta urin
+    const retryTimer = setTimeout(() => {
+      if (!lesson) tryLoad()
+    }, 1500)
+
+    return () => clearTimeout(retryTimer)
   }, [lessonId])
 
   useEffect(() => { stop() }, [activeTab])
@@ -336,17 +370,30 @@ export default function Lesson() {
     }}>
       <div style={{ fontSize: 48 }}>📖</div>
       <div style={{ color: '#7c3aed', fontSize: 14, fontWeight: 700 }}>Dars yuklanmoqda...</div>
+      <div style={{ color: '#a78bfa', fontSize: 12 }}>Iltimos kuting...</div>
     </div>
   )
 
   if (!lesson) return (
     <div style={{ padding: 24, textAlign: 'center', paddingTop: 80, background: '#f5f3ff', minHeight: '100dvh' }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>❌</div>
-      <div style={{ color: '#6b7280', fontSize: 15, marginBottom: 20 }}>Dars topilmadi</div>
-      <button onClick={() => navigate(-1)} style={{
+      <div style={{ fontSize: 48, marginBottom: 12 }}>📡</div>
+      <div style={{ color: '#6b7280', fontSize: 15, marginBottom: 8 }}>Dars yuklanmadi</div>
+      <div style={{ color: '#a78bfa', fontSize: 12, marginBottom: 20 }}>Internet ulanishini tekshiring</div>
+      <button onClick={() => { setLoading(true); setLesson(null); setTimeout(() => {
+        Promise.all([apiFetch(`/lessons/${lessonId}`), apiFetch(`/lessons/${lessonId}/quiz`)])
+          .then(([ld, qd]) => { if (ld?.id) { setLesson(ld); setQuiz(Array.isArray(qd) ? qd : []) } setLoading(false) })
+          .catch(() => setLoading(false))
+      }, 300) }} style={{
         padding: '11px 24px', borderRadius: 14,
         background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-        border: 'none', color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+        border: 'none', color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+        marginBottom: 12, display: 'block', width: '100%', maxWidth: 280, margin: '0 auto 12px'
+      }}>🔄 Qayta yuklash</button>
+      <button onClick={() => navigate(-1)} style={{
+        padding: '11px 24px', borderRadius: 14,
+        background: 'transparent',
+        border: '1.5px solid #7c3aed', color: '#7c3aed', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+        display: 'block', width: '100%', maxWidth: 280, margin: '12px auto 0'
       }}>← Orqaga</button>
     </div>
   )
