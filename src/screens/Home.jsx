@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react'
-import { StreakWidget } from './StreakWidget'
 import { useNavigate } from 'react-router-dom'
 import { useStore, getTelegramUser, initTelegramApp } from '../store'
-import { LeaderboardMini } from './LeaderboardMini'
-// JSX ichida:
-<LeaderboardMini xp={xp} userId={userId} />
 const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-production.up.railway.app/api'
 
 function getTgUserId() {
@@ -258,7 +254,6 @@ export default function Home() {
       <div style={{ padding: '0 16px' }}>
 
         {/* ── WELCOME HERO ── */}
-<StreakWidget userId={userId} isPremium={currentPremium} />
         <div style={{
           background: 'linear-gradient(135deg, #1e1b4b, #3730a3)',
           borderRadius: 24, padding: '20px 20px 18px',
@@ -496,3 +491,4 @@ export default function Home() {
     </div>
   )
 }
+
