@@ -54,8 +54,7 @@ function AppInner() {
 
     return () => clearTimeout(t)
   }, [])
-
-  //if (!onboardingDone) return <Onboarding />
+if (!onboardingDone) return <Onboarding />
 
   return (
     <>

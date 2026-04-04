@@ -281,7 +281,7 @@ export default function Lesson() {
         apiFetch(`/lessons/${lessonId}/quiz`)
       ]).then(([lessonData, quizData]) => {
         if (cancelled) return
-        if (lessonData && lessonData.id) {
+        if (lessonData && (lessonData.id || lessonData.title)) {
           setLesson(lessonData)
           setQuiz(Array.isArray(quizData) ? quizData : [])
           setLoading(false)
@@ -373,13 +373,7 @@ export default function Lesson() {
       <div style={{ fontSize: 48 }}>📖</div>
       <div style={{ color: '#7c3aed', fontSize: 14, fontWeight: 700 }}>Dars yuklanmoqda...</div>
       <div style={{ color: '#a78bfa', fontSize: 12 }}>Iltimos kuting...</div>
-      {debugInfo && (
-        <div style={{
-          marginTop: 16, padding: '8px 12px', background: '#fef3c7',
-          borderRadius: 8, fontSize: 11, color: '#92400e',
-          maxWidth: 300, textAlign: 'center', wordBreak: 'break-all'
-        }}>{debugInfo}</div>
-      )}
+
     </div>
   )
 
