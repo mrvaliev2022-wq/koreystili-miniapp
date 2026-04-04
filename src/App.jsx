@@ -6,12 +6,11 @@ import Home from './screens/Home'
 import LearningPath from './screens/LearningPath'
 import Lesson from './screens/Lesson'
 import TestScreen from './screens/TestScreen'
-import { Leaderboard, Profile, Review, Referral } from './screens/OtherScreens'
+import { Profile, Review, Referral } from './screens/OtherScreens'
 import Premium from './screens/Premium'
 import BottomNav from './components/BottomNav'
 import Leaderboard from './screens/Leaderboard'
-// Routes ichiga:
-<Route path="/leaderboard" element={<Leaderboard />} />
+
 const SHOW_NAV = ['/', '/path', '/learning-path', '/leaderboard', '/profile']
 
 function AppInner() {
@@ -20,7 +19,6 @@ function AppInner() {
   const showNav = SHOW_NAV.includes(location.pathname)
 
   useEffect(() => {
-    // Pull Telegram user on first mount + register with backend
     const tgUser = getTelegramUser()
     if (tgUser.name && !user.name) setUser(tgUser)
     if (tgUser.id) {
@@ -35,14 +33,11 @@ function AppInner() {
         }).catch(() => {})
       }).catch(() => {})
     }
-
-    // ✅ FIX: agar onboardingDone=true lekin activeTrack=null bo'lsa — tuzat
     if (onboardingDone && !activeTrack) {
       setActiveTrack('topik')
     }
   }, [])
 
-  // ChannelGate disabled
   if (!onboardingDone) return <Onboarding />
 
   return (
