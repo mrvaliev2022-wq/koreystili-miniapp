@@ -258,10 +258,10 @@ export default function Lesson() {
   const contentRef = useRef(null)
   const { speakingId, speak, speakAll, stop } = useSpeaker()
 
-  // Load — userId ni kutib olamiz (Telegram WebApp sekin yuklanishi mumkin)
+  // Load
   useEffect(() => {
     let attempts = 0
-    const maxAttempts = 8
+    const maxAttempts = 10
 
     const tryLoad = () => {
       const uid = getTgUserId()
@@ -278,12 +278,12 @@ export default function Lesson() {
         setQuiz(Array.isArray(quizData) ? quizData : [])
         setLoading(false)
       }).catch((err) => {
-        console.error('Lesson load error:', err)
+        console.error('Lesson error:', err)
         setLoading(false)
       })
     }
 
-    setTimeout(tryLoad, 400)
+    setTimeout(tryLoad, 500)
   }, [lessonId])
 
   useEffect(() => { stop() }, [activeTab])
