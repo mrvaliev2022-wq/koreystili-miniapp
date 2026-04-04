@@ -19,42 +19,26 @@ function AppInner() {
   const showNav = SHOW_NAV.includes(location.pathname)
 
   useEffect(() => {
-    // Telegram WebApp ready bo'lishini kutib, user ma'lumotlarini olish
-    const initUser = () => {
-      const tgUser = getTelegramUser()
-      if (tgUser.name && !user.name) setUser(tgUser)
-      if (tgUser.id) {
-        import('./api.js').then(({ registerUser }) => {
-          const refCode = new URLSearchParams(window.location.search).get('start') ||
-            window.Telegram?.WebApp?.initDataUnsafe?.start_param || ''
-          registerUser({
-            user_id: tgUser.id,
-            first_name: tgUser.name.split(' ')[0],
-            last_name: tgUser.name.split(' ').slice(1).join(' ') || undefined,
-            referral_code: refCode || undefined,
-          }).catch(() => {})
+    const tgUser = getTelegramUser()
+    if (tgUser.name && !user.name) setUser(tgUser)
+    if (tgUser.id) {
+      import('./api.js').then(({ registerUser }) => {
+        const refCode = new URLSearchParams(window.location.search).get('start') ||
+          window.Telegram?.WebApp?.initDataUnsafe?.start_param || ''
+        registerUser({
+          user_id: tgUser.id,
+          first_name: tgUser.name.split(' ')[0],
+          last_name: tgUser.name.split(' ').slice(1).join(' ') || undefined,
+          referral_code: refCode || undefined,
         }).catch(() => {})
-      }
+      }).catch(() => {})
     }
-
-    // Telegram WebApp ready event'ini ham listen qilamiz
-    const tg = window.Telegram?.WebApp
-    if (tg) {
-      try { tg.ready() } catch {}
-      try { tg.expand() } catch {}
-    }
-
-    // Darhol va 800ms keyin ham urinib ko'r (WebApp init uchun)
-    initUser()
-    const t = setTimeout(initUser, 800)
-
     if (onboardingDone && !activeTrack) {
       setActiveTrack('topik')
     }
-
-    return () => clearTimeout(t)
   }, [])
-if (!onboardingDone) return <Onboarding />
+
+  if (!onboardingDone) return <Onboarding />
 
   return (
     <>

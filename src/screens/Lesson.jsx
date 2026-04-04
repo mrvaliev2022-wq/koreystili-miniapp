@@ -7,26 +7,20 @@ const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-productio
 
 // ── Helpers ──────────────────────────────────────────────────────────
 function getTgUserId() {
-  try {
-    const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id
-    return id ? String(id) : null
-  } catch { return null }
+  try { return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null } catch { return null }
 }
 
 async function apiFetch(path) {
   const userId = getTgUserId() || '0'
   const sep = path.includes('?') ? '&' : '?'
-  const url = `${BASE}${path}${sep}user_id=${userId}`
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    cache: 'no-store'
+  const res = await fetch(`${BASE}${path}${sep}user_id=${userId}`, {
+    headers: { 'Content-Type': 'application/json' }
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.error || `HTTP ${res.status}`)
   }
-  const data = await res.json()
-  return data
+  return res.json()
 }
 
 // ── Korean TTS ───────────────────────────────────────────────────────
@@ -253,7 +247,6 @@ export default function Lesson() {
   const [lesson, setLesson] = useState(null)
   const [quiz, setQuiz] = useState([])
   const [loading, setLoading] = useState(true)
-  const [debugInfo, setDebugInfo] = useState('')
   const [phase, setPhase] = useState('content')
   const [activeTab, setActiveTab] = useState('intro')
   const [doneTabs, setDoneTabs] = useState(new Set())
@@ -265,68 +258,39 @@ export default function Lesson() {
   const contentRef = useRef(null)
   const { speakingId, speak, speakAll, stop } = useSpeaker()
 
-  // ── Load lesson ─────────────────────────────────────────────────────
+  // Load
   useEffect(() => {
-    let cancelled = false
-    let attempts = 0
-
     const tryLoad = () => {
-      if (cancelled) return
-      attempts++
-      const uid = getTgUserId()
-      setDebugInfo(`Urinish ${attempts}: user_id=${uid || 'null'}, lesson=${lessonId}`)
-
+      const uid = getTgUserId() || '0'
+      // Yangi user ni ro'yxatdan o'tkazish
+      if (uid) {
+        const tg = window.Telegram?.WebApp?.initDataUnsafe?.user
+        fetch(`${BASE}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: uid,
+            first_name: tg?.first_name || 'Foydalanuvchi',
+            username: tg?.username || '',
+            photo_url: tg?.photo_url || ''
+          })
+        }).catch(() => {})
+      }
       Promise.all([
         apiFetch(`/lessons/${lessonId}`),
         apiFetch(`/lessons/${lessonId}/quiz`)
       ]).then(([lessonData, quizData]) => {
-        if (cancelled) return
-        if (lessonData && (lessonData.id || lessonData.title)) {
-          setLesson(lessonData)
-          setQuiz(Array.isArray(quizData) ? quizData : [])
-          setLoading(false)
-          // Real user_id bilan register
-          const uid = getTgUserId()
-          if (uid) {
-            const tg = window.Telegram?.WebApp?.initDataUnsafe?.user
-            fetch(`${BASE}/register`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                user_id: uid,
-                first_name: tg?.first_name || 'Foydalanuvchi',
-                username: tg?.username || '',
-              })
-            }).catch(() => {})
-          }
-        } else if (attempts < 4) {
-          setTimeout(tryLoad, 1000)
-        } else {
-          setLoading(false)
-        }
-      }).catch(() => {
-        if (cancelled) return
-        if (attempts < 4) {
-          setTimeout(tryLoad, 1200 * attempts)
-        } else {
-          setLoading(false)
-        }
+        setLesson(lessonData)
+        setQuiz(Array.isArray(quizData) ? quizData : [])
+        setLoading(false)
+      }).catch((err) => {
+        console.error('Lesson error:', err)
+        setLoading(false)
       })
     }
 
-    // Telegram WebApp ni tayyorlash
-    try {
-      window.Telegram?.WebApp?.ready()
-      window.Telegram?.WebApp?.expand()
-    } catch {}
-
-    // 300ms kutib keyin boshlash — WebApp init uchun
-    const startTimer = setTimeout(tryLoad, 300)
-
-    return () => {
-      cancelled = true
-      clearTimeout(startTimer)
-    }
+    // Telegram WebApp yuklanishini kutamiz
+    setTimeout(tryLoad, 1000)
   }, [lessonId])
 
   useEffect(() => { stop() }, [activeTab])
@@ -368,35 +332,21 @@ export default function Lesson() {
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       height: '100dvh', flexDirection: 'column', gap: 14,
-      background: '#f5f3ff', padding: 24
+      background: '#f5f3ff'
     }}>
       <div style={{ fontSize: 48 }}>📖</div>
       <div style={{ color: '#7c3aed', fontSize: 14, fontWeight: 700 }}>Dars yuklanmoqda...</div>
-      <div style={{ color: '#a78bfa', fontSize: 12 }}>Iltimos kuting...</div>
-
     </div>
   )
 
   if (!lesson) return (
     <div style={{ padding: 24, textAlign: 'center', paddingTop: 80, background: '#f5f3ff', minHeight: '100dvh' }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>📡</div>
-      <div style={{ color: '#6b7280', fontSize: 15, marginBottom: 8 }}>Dars yuklanmadi</div>
-      <div style={{ color: '#a78bfa', fontSize: 12, marginBottom: 20 }}>Internet ulanishini tekshiring</div>
-      <button onClick={() => { setLoading(true); setLesson(null); setTimeout(() => {
-        Promise.all([apiFetch(`/lessons/${lessonId}`), apiFetch(`/lessons/${lessonId}/quiz`)])
-          .then(([ld, qd]) => { if (ld?.id) { setLesson(ld); setQuiz(Array.isArray(qd) ? qd : []) } setLoading(false) })
-          .catch(() => setLoading(false))
-      }, 300) }} style={{
-        padding: '11px 24px', borderRadius: 14,
-        background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-        border: 'none', color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-        marginBottom: 12, display: 'block', width: '100%', maxWidth: 280, margin: '0 auto 12px'
-      }}>🔄 Qayta yuklash</button>
+      <div style={{ fontSize: 48, marginBottom: 12 }}>❌</div>
+      <div style={{ color: '#6b7280', fontSize: 15, marginBottom: 20 }}>Dars topilmadi</div>
       <button onClick={() => navigate(-1)} style={{
         padding: '11px 24px', borderRadius: 14,
-        background: 'transparent',
-        border: '1.5px solid #7c3aed', color: '#7c3aed', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-        display: 'block', width: '100%', maxWidth: 280, margin: '12px auto 0'
+        background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+        border: 'none', color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer'
       }}>← Orqaga</button>
     </div>
   )
