@@ -11,7 +11,7 @@ function getTgUserId() {
 }
 
 async function apiFetch(path) {
-  const userId = getTgUserId() || '0'
+  const userId = getTgUserId()
   const sep = path.includes('?') ? '&' : '?'
   const res = await fetch(`${BASE}${path}${sep}user_id=${userId}`, {
     headers: { 'Content-Type': 'application/json' }
@@ -260,21 +260,15 @@ export default function Lesson() {
 
   // Load
   useEffect(() => {
+    let attempts = 0
+    const maxAttempts = 10
+
     const tryLoad = () => {
-      const uid = getTgUserId() || '0'
-      // Yangi user ni ro'yxatdan o'tkazish
-      if (uid) {
-        const tg = window.Telegram?.WebApp?.initDataUnsafe?.user
-        fetch(`${BASE}/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: uid,
-            first_name: tg?.first_name || 'Foydalanuvchi',
-            username: tg?.username || '',
-            photo_url: tg?.photo_url || ''
-          })
-        }).catch(() => {})
+      const uid = getTgUserId()
+      if (!uid && attempts < maxAttempts) {
+        attempts++
+        setTimeout(tryLoad, 500)
+        return
       }
       Promise.all([
         apiFetch(`/lessons/${lessonId}`),
@@ -289,8 +283,7 @@ export default function Lesson() {
       })
     }
 
-    // Telegram WebApp yuklanishini kutamiz
-    setTimeout(tryLoad, 1000)
+    setTimeout(tryLoad, 500)
   }, [lessonId])
 
   useEffect(() => { stop() }, [activeTab])
