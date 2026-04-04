@@ -260,16 +260,8 @@ export default function Lesson() {
 
   // Load
   useEffect(() => {
-    let attempts = 0
-    const maxAttempts = 10
-
     const tryLoad = () => {
-      const uid = getTgUserId()
-      if (!uid && attempts < maxAttempts) {
-        attempts++
-        setTimeout(tryLoad, 500)
-        return
-      }
+      const uid = getTgUserId() || '0'
       // Yangi user ni ro'yxatdan o'tkazish
       if (uid) {
         const tg = window.Telegram?.WebApp?.initDataUnsafe?.user
@@ -297,7 +289,7 @@ export default function Lesson() {
       })
     }
 
-    setTimeout(tryLoad, 500)
+    tryLoad()
   }, [lessonId])
 
   useEffect(() => { stop() }, [activeTab])
