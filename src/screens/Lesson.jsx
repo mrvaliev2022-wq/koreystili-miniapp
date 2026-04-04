@@ -7,9 +7,11 @@ const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-productio
 
 // ── Helpers ──────────────────────────────────────────────────────────
 function getTgUserId() {
-  try { return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null } catch { return null }
+  try { 
+    const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id
+    return id ? String(id) : '0'
+  } catch { return '0' }
 }
-
 async function apiFetch(path) {
   const userId = getTgUserId() || '0'
   const sep = path.includes('?') ? '&' : '?'
