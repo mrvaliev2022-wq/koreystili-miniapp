@@ -7,20 +7,26 @@ const BASE = import.meta.env.VITE_API_URL || 'https://topik-epsbackend-productio
 
 // ── Helpers ──────────────────────────────────────────────────────────
 function getTgUserId() {
-  try { return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null } catch { return null }
+  try {
+    const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id
+    return id ? String(id) : null
+  } catch { return null }
 }
 
 async function apiFetch(path) {
   const userId = getTgUserId() || '0'
   const sep = path.includes('?') ? '&' : '?'
-  const res = await fetch(`${BASE}${path}${sep}user_id=${userId}`, {
-    headers: { 'Content-Type': 'application/json' }
+  const url = `${BASE}${path}${sep}user_id=${userId}`
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store'
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.error || `HTTP ${res.status}`)
   }
-  return res.json()
+  const data = await res.json()
+  return data
 }
 
 // ── Korean TTS ───────────────────────────────────────────────────────
@@ -247,6 +253,7 @@ export default function Lesson() {
   const [lesson, setLesson] = useState(null)
   const [quiz, setQuiz] = useState([])
   const [loading, setLoading] = useState(true)
+  const [debugInfo, setDebugInfo] = useState('')
   const [phase, setPhase] = useState('content')
   const [activeTab, setActiveTab] = useState('intro')
   const [doneTabs, setDoneTabs] = useState(new Set())
@@ -258,73 +265,68 @@ export default function Lesson() {
   const contentRef = useRef(null)
   const { speakingId, speak, speakAll, stop } = useSpeaker()
 
-  // Load
+  // ── Load lesson ─────────────────────────────────────────────────────
   useEffect(() => {
+    let cancelled = false
+    let attempts = 0
+
     const tryLoad = () => {
-      const uid = getTgUserId() || '0'
-      // Yangi user ni ro'yxatdan o'tkazish
-      if (uid) {
-        const tg = window.Telegram?.WebApp?.initDataUnsafe?.user
-        fetch(`${BASE}/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: uid,
-            first_name: tg?.first_name || 'Foydalanuvchi',
-            username: tg?.username || '',
-            photo_url: tg?.photo_url || ''
-          })
-        }).catch(() => {})
-      }
+      if (cancelled) return
+      attempts++
+      const uid = getTgUserId()
+      setDebugInfo(`Urinish ${attempts}: user_id=${uid || 'null'}, lesson=${lessonId}`)
+
       Promise.all([
         apiFetch(`/lessons/${lessonId}`),
         apiFetch(`/lessons/${lessonId}/quiz`)
       ]).then(([lessonData, quizData]) => {
+        if (cancelled) return
         if (lessonData && lessonData.id) {
           setLesson(lessonData)
           setQuiz(Array.isArray(quizData) ? quizData : [])
           setLoading(false)
+          // Real user_id bilan register
+          const uid = getTgUserId()
+          if (uid) {
+            const tg = window.Telegram?.WebApp?.initDataUnsafe?.user
+            fetch(`${BASE}/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: uid,
+                first_name: tg?.first_name || 'Foydalanuvchi',
+                username: tg?.username || '',
+              })
+            }).catch(() => {})
+          }
+        } else if (attempts < 4) {
+          setTimeout(tryLoad, 1000)
         } else {
-          // Ma'lumot bo'sh keldi — retry
-          console.warn('Lesson data empty, retrying...')
-          setTimeout(tryLoad, 1200)
+          setLoading(false)
         }
-      }).catch((err) => {
-        console.error('Lesson error:', err)
-        // Retry: 2 sekunddan keyin qayta urinib ko'r
-        setTimeout(() => {
-          apiFetch(`/lessons/${lessonId}`)
-            .then(lessonData => {
-              if (lessonData && lessonData.id) {
-                setLesson(lessonData)
-                apiFetch(`/lessons/${lessonId}/quiz`)
-                  .then(q => setQuiz(Array.isArray(q) ? q : []))
-                  .catch(() => {})
-                setLoading(false)
-              } else {
-                setLoading(false)
-              }
-            })
-            .catch(() => setLoading(false))
-        }, 2000)
+      }).catch(() => {
+        if (cancelled) return
+        if (attempts < 4) {
+          setTimeout(tryLoad, 1200 * attempts)
+        } else {
+          setLoading(false)
+        }
       })
     }
 
-    // Telegram WebApp ready bo'lishini kutamiz + retry
-    const tg = window.Telegram?.WebApp
-    if (tg && !tg.isExpanded) {
-      try { tg.expand() } catch {}
+    // Telegram WebApp ni tayyorlash
+    try {
+      window.Telegram?.WebApp?.ready()
+      window.Telegram?.WebApp?.expand()
+    } catch {}
+
+    // 300ms kutib keyin boshlash — WebApp init uchun
+    const startTimer = setTimeout(tryLoad, 300)
+
+    return () => {
+      cancelled = true
+      clearTimeout(startTimer)
     }
-
-    // Darhol urinib ko'r
-    tryLoad()
-
-    // Agar 1 sekundda yuklanmasa (yangi user / slow init) — qayta urin
-    const retryTimer = setTimeout(() => {
-      if (!lesson) tryLoad()
-    }, 1500)
-
-    return () => clearTimeout(retryTimer)
   }, [lessonId])
 
   useEffect(() => { stop() }, [activeTab])
@@ -366,11 +368,18 @@ export default function Lesson() {
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       height: '100dvh', flexDirection: 'column', gap: 14,
-      background: '#f5f3ff'
+      background: '#f5f3ff', padding: 24
     }}>
       <div style={{ fontSize: 48 }}>📖</div>
       <div style={{ color: '#7c3aed', fontSize: 14, fontWeight: 700 }}>Dars yuklanmoqda...</div>
       <div style={{ color: '#a78bfa', fontSize: 12 }}>Iltimos kuting...</div>
+      {debugInfo && (
+        <div style={{
+          marginTop: 16, padding: '8px 12px', background: '#fef3c7',
+          borderRadius: 8, fontSize: 11, color: '#92400e',
+          maxWidth: 300, textAlign: 'center', wordBreak: 'break-all'
+        }}>{debugInfo}</div>
+      )}
     </div>
   )
 
