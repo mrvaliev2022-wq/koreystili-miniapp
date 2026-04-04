@@ -11,7 +11,7 @@ function getTgUserId() {
 }
 
 async function apiFetch(path) {
-  const userId = getTgUserId()
+  const userId = getTgUserId() || '0'
   const sep = path.includes('?') ? '&' : '?'
   const res = await fetch(`${BASE}${path}${sep}user_id=${userId}`, {
     headers: { 'Content-Type': 'application/json' }
