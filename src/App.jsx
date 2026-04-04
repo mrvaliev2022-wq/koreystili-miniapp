@@ -38,7 +38,7 @@ function AppInner() {
     }
   }, [])
 
-  if (!onboardingDone) return <Onboarding />
+  //if (!onboardingDone) return <Onboarding />
 
   return (
     <>
