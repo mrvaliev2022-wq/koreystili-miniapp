@@ -46,18 +46,15 @@ export default function Leaderboard() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      await syncXp()
+      if (tgUser) await syncXp().catch(() => {})
       const userId = tgUser?.user_id || ''
-      const [globalRes, friendsRes] = await Promise.all([
-        fetch(`${BASE}/leaderboard/global?user_id=${userId}`).then(r => r.json()),
-        userId ? fetch(`${BASE}/leaderboard/friends?user_id=${userId}`).then(r => r.json()) : Promise.resolve({ data: [] })
-      ])
-      if (globalRes.ok) {
-        setGlobalList(globalRes.data || [])
-        setMyRank(globalRes.myRank || null)
+      const globalRes = await fetch(`${BASE}/leaderboard/global?user_id=${userId}`).then(r => r.json()).catch(() => ({ ok: false, data: [] }))
+      if (globalRes.ok) { setGlobalList(globalRes.data || []); setMyRank(globalRes.myRank || null) }
+      if (userId) {
+        const friendsRes = await fetch(`${BASE}/leaderboard/friends?user_id=${userId}`).then(r => r.json()).catch(() => ({ ok: false }))
+        if (friendsRes.ok) setFriendsList(friendsRes.data || [])
       }
-      if (friendsRes.ok) setFriendsList(friendsRes.data || [])
-    } catch {}
+    } catch(e) { console.error(e) }
     setLoading(false)
   }, [syncXp, tgUser])
 
@@ -256,3 +253,4 @@ function PodiumCard({ user, rank, isMe }) {
     </div>
   )
 }
+
