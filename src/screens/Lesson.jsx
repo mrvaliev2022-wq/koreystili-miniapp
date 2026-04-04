@@ -270,6 +270,20 @@ export default function Lesson() {
         setTimeout(tryLoad, 500)
         return
       }
+      // Yangi user ni ro'yxatdan o'tkazish
+      if (uid) {
+        const tg = window.Telegram?.WebApp?.initDataUnsafe?.user
+        fetch(`${BASE}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: uid,
+            first_name: tg?.first_name || 'Foydalanuvchi',
+            username: tg?.username || '',
+            photo_url: tg?.photo_url || ''
+          })
+        }).catch(() => {})
+      }
       Promise.all([
         apiFetch(`/lessons/${lessonId}`),
         apiFetch(`/lessons/${lessonId}/quiz`)
