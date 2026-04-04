@@ -289,7 +289,8 @@ export default function Lesson() {
       })
     }
 
-    tryLoad()
+    // Telegram WebApp yuklanishini kutamiz
+    setTimeout(tryLoad, 1000)
   }, [lessonId])
 
   useEffect(() => { stop() }, [activeTab])
