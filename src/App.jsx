@@ -1,41 +1,49 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { useStore, getTelegramUser } from './store'
+import { useStore, getTgUser } from './store'
+import { registerUser, checkPremium } from './api'
+
 import Onboarding from './screens/Onboarding'
 import Home from './screens/Home'
 import LearningPath from './screens/LearningPath'
 import Lesson from './screens/Lesson'
-import TestScreen from './screens/TestScreen'
-import { Profile, Review, Referral } from './screens/OtherScreens'
 import Premium from './screens/Premium'
-import BottomNav from './components/BottomNav'
 import Leaderboard from './screens/Leaderboard'
+import Profile from './screens/Profile'
+import BottomNav from './components/BottomNav'
 
-const SHOW_NAV = ['/', '/path', '/learning-path', '/leaderboard', '/profile']
+const SHOW_NAV = ['/', '/path', '/leaderboard', '/profile']
 
 function AppInner() {
-  const { isSubscribed, onboardingDone, activeTrack, setActiveTrack, setUser, user } = useStore()
+  const { onboardingDone, setUser, activatePremium } = useStore()
   const location = useLocation()
   const showNav = SHOW_NAV.includes(location.pathname)
 
   useEffect(() => {
-    const tgUser = getTelegramUser()
-    if (tgUser.name && !user.name) setUser(tgUser)
-    if (tgUser.id) {
-      import('./api.js').then(({ registerUser }) => {
-        const refCode = new URLSearchParams(window.location.search).get('start') ||
-          window.Telegram?.WebApp?.initDataUnsafe?.start_param || ''
-        registerUser({
+    // Telegram user olish va register qilish
+    const init = async () => {
+      const tgUser = getTgUser()
+      if (tgUser.name) setUser(tgUser)
+
+      if (tgUser.id && tgUser.id !== '0') {
+        // Register
+        await registerUser({
           user_id: tgUser.id,
           first_name: tgUser.name.split(' ')[0],
           last_name: tgUser.name.split(' ').slice(1).join(' ') || undefined,
-          referral_code: refCode || undefined,
+          username: tgUser.username || undefined,
         }).catch(() => {})
-      }).catch(() => {})
+
+        // Premium tekshirish
+        const isPrem = await checkPremium()
+        if (isPrem) activatePremium(-1)
+      }
     }
-    if (onboardingDone && !activeTrack) {
-      setActiveTrack('topik')
-    }
+
+    init()
+    // 1 soniya keyin qayta urinish (Telegram sekin yuklanishi uchun)
+    const t = setTimeout(init, 1000)
+    return () => clearTimeout(t)
   }, [])
 
   if (!onboardingDone) return <Onboarding />
@@ -45,14 +53,10 @@ function AppInner() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/path" element={<LearningPath />} />
-        <Route path="/learning-path" element={<LearningPath />} />
         <Route path="/lesson/:lessonId" element={<Lesson />} />
-        <Route path="/test/:testId" element={<TestScreen />} />
+        <Route path="/premium" element={<Premium />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/review" element={<Review />} />
-        <Route path="/premium" element={<Premium />} />
-        <Route path="/referral" element={<Referral />} />
       </Routes>
       {showNav && <BottomNav />}
     </>
