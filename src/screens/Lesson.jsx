@@ -16,10 +16,6 @@ async function apiFetch(path) {
   const res = await fetch(`${BASE}${path}${sep}user_id=${userId}`, {
     headers: { 'Content-Type': 'application/json' }
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || `HTTP ${res.status}`)
-  }
   return res.json()
 }
 
@@ -270,33 +266,17 @@ export default function Lesson() {
         setTimeout(tryLoad, 500)
         return
       }
-      // Lesson va quiz ni alohida yuklaymiz — biri xato bo'lsa ham davom etsin
-      fetch(`${BASE}/lessons/${lessonId}?user_id=${getTgUserId()}`, {headers:{'Content-Type':'application/json'}})
-        .then(r => r.json())
-        .then(lessonData => {
-          if (lessonData && lessonData.title) {
-            setLesson(lessonData)
-            setLoading(false)
-            // Quiz alohida yuklaymiz
-            fetch(`${BASE}/lessons/${lessonId}/quiz?user_id=${getTgUserId()}`, {headers:{'Content-Type':'application/json'}})
-              .then(r => r.json())
-              .then(quizData => { if (Array.isArray(quizData)) setQuiz(quizData) })
-              .catch(() => {})
-          } else if (attempts < 3) {
-            attempts++
-            setTimeout(tryLoad, 1000)
-          } else {
-            setLoading(false)
-          }
-        })
-        .catch(() => {
-          if (attempts < 3) {
-            attempts++
-            setTimeout(tryLoad, 1000)
-          } else {
-            setLoading(false)
-          }
-        })
+      Promise.all([
+        apiFetch(`/lessons/${lessonId}`),
+        apiFetch(`/lessons/${lessonId}/quiz`)
+      ]).then(([lessonData, quizData]) => {
+        setLesson(lessonData)
+        setQuiz(Array.isArray(quizData) ? quizData : [])
+        setLoading(false)
+      }).catch((err) => {
+        console.error('Lesson error:', err)
+        setLoading(false)
+      })
     }
 
     setTimeout(tryLoad, 500)
