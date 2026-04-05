@@ -88,13 +88,22 @@ function MatchPairsGame({ pairs }) {
   const [shaking, setShaking] = useState([])
 
   useEffect(() => {
-    if (!pairs?.length) return
-    const korCards = pairs.map((p, i) => ({ id: `k-${i}`, text: p.korean, pairId: i, type: 'korean' }))
-    const uzCards  = pairs.map((p, i) => ({ id: `u-${i}`, text: p.uzbek,  pairId: i, type: 'uzbek'  }))
-    const all = [...korCards, ...uzCards].sort(() => Math.random() - 0.5)
-    setCards(all); setSelected([]); setMatched([]); setMistakes(0)
-    setFinished(false); setShaking([])
-  }, [pairs])
+  const uid = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || '0'
+  const load = async () => {
+    try {
+      const [l, q] = await Promise.all([
+        fetch(`${BASE}/lessons/${lessonId}?user_id=${uid}`).then(r => r.json()),
+        fetch(`${BASE}/lessons/${lessonId}/quiz?user_id=${uid}`).then(r => r.json())
+      ])
+      setLesson(l)
+      setQuiz(Array.isArray(q) ? q : [])
+    } catch(e) {
+      console.error(e)
+    }
+    setLoading(false)
+  }
+  setTimeout(load, 300)
+}, [lessonId])
 
   const handleSelect = (card) => {
     if (matched.includes(card.id)) return
