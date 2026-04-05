@@ -105,7 +105,7 @@ export default function Premium() {
               <div style={{ fontSize: 56, marginBottom: 12 }}>👑</div>
               <div style={{ fontSize: 24, fontWeight: 900, color: 'white', marginBottom: 8 }}>Premium</div>
               <div style={{ fontSize: 32, fontWeight: 900, color: '#a3e635' }}>{PRICE}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>oyiga</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>7 oylik obuna</div>
             </div>
 
             {/* Features */}
@@ -145,8 +145,7 @@ export default function Premium() {
                 }}>💳</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 800, color: '#1e1b4b' }}>Karta orqali</div>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
-                    Uzcard / Humo — {PRICE}
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Uzcard / Humo — {PRICE} (7 oy)</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 14, color: '#7c3aed', fontWeight: 700 }}>→</div>
