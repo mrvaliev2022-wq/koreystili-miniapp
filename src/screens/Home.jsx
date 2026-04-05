@@ -141,7 +141,7 @@ export default function Home() {
             {[
               { val: xp, label: 'XP ball', color: '#a3e635' },
               { val: streak > 0 ? `${streak} 🔥` : '0', label: 'Streak', color: 'white' },
-              { val: `${totalDone}/77`, label: 'Darslar', color: 'white' },
+              { val: `${totalDone}/127`, label: 'Darslar', color: 'white' },
             ].map((s, i) => (
               <div key={i} style={{
                 flex: 1, background: 'rgba(255,255,255,0.07)',
