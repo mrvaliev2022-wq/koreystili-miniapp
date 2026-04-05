@@ -193,7 +193,7 @@ export default function Home() {
       for (const id of allEpsIds) {
         if (lp[id] === 'available') return id
       }
-      return 'alpha-1'
+      return 'eps-1'
     }
   }
 
@@ -491,4 +491,5 @@ export default function Home() {
     </div>
   )
 }
+
 
