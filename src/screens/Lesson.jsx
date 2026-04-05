@@ -8,15 +8,36 @@ const FREE_LESSONS = 2
 // TTS
 function useSpeaker() {
   const [speaking, setSpeaking] = useState(null)
+
   const speak = (text, id) => {
     window.speechSynthesis.cancel()
-    setSpeaking(id)
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = 'ko-KR'; u.rate = 0.85
-    u.onend = () => setSpeaking(null)
-    u.onerror = () => setSpeaking(null)
-    window.speechSynthesis.speak(u)
+    setTimeout(() => {
+      const u = new SpeechSynthesisUtterance(text)
+      u.lang = 'ko-KR'
+      u.rate = 0.85
+      u.pitch = 1.0
+      u.volume = 1.0
+
+      // iPhone: voice tanlash
+      const voices = window.speechSynthesis.getVoices()
+      const korVoice = voices.find(v => v.lang.startsWith('ko'))
+      if (korVoice) u.voice = korVoice
+
+      setSpeaking(id)
+
+      // iPhone fix: speechSynthesis to'xtab qolishi
+      const timer = setInterval(() => {
+        if (!window.speechSynthesis.speaking) { clearInterval(timer); return }
+        window.speechSynthesis.pause()
+        window.speechSynthesis.resume()
+      }, 5000)
+
+      u.onend = () => { clearInterval(timer); setSpeaking(null) }
+      u.onerror = () => { clearInterval(timer); setSpeaking(null) }
+      window.speechSynthesis.speak(u)
+    }, 100)
   }
+
   const stop = () => { window.speechSynthesis.cancel(); setSpeaking(null) }
   return { speaking, speak, stop }
 }
