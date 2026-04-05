@@ -59,9 +59,10 @@ export default function Home() {
     } else {
       const lp = epsProgress.lessonProgress || {}
       const ids = [
-        ...Array.from({ length: 7 }, (_, i) => `alpha-${i + 1}`),
-        ...Array.from({ length: 30 }, (_, i) => `eps-${i + 1}`),
-      ]
+  ...Array.from({ length: 7 }, (_, i) => `alpha-${i + 1}`),
+  ...Array.from({ length: 30 }, (_, i) => `eps-${i + 1}`),
+  ...Array.from({ length: 30 }, (_, i) => `eps2-${i + 11}`),
+]
       for (const id of ids) {
         if (lp[id] === 'available') return id
       }
